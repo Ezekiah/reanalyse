@@ -5,9 +5,9 @@ import re
 
 
 if settings.ROOT_DIRECTORY_NAME == 'app':
-    from reanalyseapp.models import *
+	from reanalyseapp.models import *
 else:
-    from reanalyse.reanalyseapp.models import *
+	from reanalyse.reanalyseapp.models import *
 
 
 
@@ -32,8 +32,8 @@ import os, zipfile
 import logging
 logger = logging.getLogger('apps')
 class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
+	def emit(self, record):
+		pass
 nullhandler = logger.addHandler(NullHandler())
 ###########################################################################
 
@@ -48,8 +48,8 @@ nullhandler = logger.addHandler(NullHandler())
 ###########################################################################
 # "#648484" to [R,G,B]
 def htmlColorToRgb(c):
-    split = (c[1:3], c[3:5], c[5:7])
-    return [int(x, 16) for x in split]
+	split = (c[1:3], c[3:5], c[5:7])
+	return [int(x, 16) for x in split]
 ###########################################################################
 def randomizeSpeakersColors(e):
 	for s in e.speaker_set.all():
@@ -75,25 +75,25 @@ def getSpeakersColorsDict(e,texte):
 
 # return color dict for a text or for whole enquete
 def getRandomSpeakersColorsDict(e,texte):
-    colors={}
-    try:
-        for s in texte.speaker_set.all():
-            
-            
-            if s.ddi_type == 'INV':
-                i = int(len(HTML_COLORS_INV)*random.random())
-                colors[int(s.id)]=HTML_COLORS_INV[i]
-                HTML_COLORS_INV.pop(i)
-            else:
-                i = int(len(HTML_COLORS_INT)*random.random())
-                colors[int(s.id)]= HTML_COLORS_INT[i]
-                HTML_COLORS_INT.pop(i)
-            
-            
-    except:
-        for s in e.speaker_set.all():
-            colors[int(s.id)]=str(s.color)
-    return colors
+	colors={}
+	try:
+		for s in texte.speaker_set.all():
+			
+			
+			if s.ddi_type == 'INV':
+				i = int(len(HTML_COLORS_INV)*random.random())
+				colors[int(s.id)]=HTML_COLORS_INV[i]
+				HTML_COLORS_INV.pop(i)
+			else:
+				i = int(len(HTML_COLORS_INT)*random.random())
+				colors[int(s.id)]= HTML_COLORS_INT[i]
+				HTML_COLORS_INT.pop(i)
+			
+			
+	except:
+		for s in e.speaker_set.all():
+			colors[int(s.id)]=str(s.color)
+	return colors
 ###########################################################################
 
 
@@ -503,9 +503,13 @@ class unzip:
 					outfile.write(zf.read(name.encode("latin-1")))
 					outfile.flush()
 					outfile.close()
-			except Exception,e: 
+			except Exception,e:
+				
+				print("I/O error({0}): {1}".format(e.errno, e.strerror))
+				logger.exception("I/O error({0}): {1}".format(e.errno, e.strerror))
 				logger.exception("ERROR : %s CONTAINS A COMPLEX CHARACTER, please use standard ascii charcater a-Z" % name )
-				exit()
+				
+				return e
 
 	def _createstructure(self, file, dir):
 		self._makedirs(self._listdirs(file), dir)
@@ -644,4 +648,3 @@ def getHtmlAroundIntervention(intervention):
 # 	enquete.status=0
 # 	enquete.save()
 ####################################################################
-

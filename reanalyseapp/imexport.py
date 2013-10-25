@@ -2,6 +2,7 @@
 ###########################################################################
 import settings
 import os,re
+import json
 
 # for time measurement
 from time import time
@@ -20,6 +21,7 @@ from reanalyseapp.visualization import *
 # for enquete permission
 from django.contrib.auth.models import Group,Permission
 from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 
 from django.core import serializers
 
@@ -54,7 +56,7 @@ nullhandler = logger.addHandler(NullHandler())
 ###########################################################################
 def doFiestaToEnquete(e):
     logger.info("["+str(e.id)+"] enquete object made. now parsing docs, making viz, etc...")
-    
+    print("["+str(e.id)+"] enquete object made. now parsing docs, making viz, etc...")
     e.status='1'
     e.statuscomplete=0
     e.save()
@@ -138,63 +140,107 @@ def doFiestaToEnquete(e):
 ###########################################################################
 
 
-
-
-def isMetaDocOK(folderPath,docPath):
+def getCsvDelimiter(path):
+    with open(path, 'rb') as csvfile:
+        dialect = csv.Sniffer().sniff(csvfile.readline())
+        return dialect.delimiter
     
-   
-    
-    
-    if os.path.exists(docPath):
-        
-        
-        #mandatoryFields = ['*id','*name','*category','*description','*location','*date']
-        logger.info("=========== PARSING META_DOCUMENTS.CSV TO CHECK IF A FILE IS MISSING IF TRUE IMPORT IS CANCELLED")
-        ###### Parsing Documents
-        
-        doc = bag.csv2.UnicodeDictReader(open(docPath, 'r'), delimiter='\t',
-                                encoding='utf-8')
-       
-       
-        error = False
-        error_dict = {}
-        
-        i = 0
-        
-     
 
-        for counter, row in enumerate(doc):
-            i += 1
+def isMetaDocOK(folderPath):
 
-            if row['*id']!='*descr':
+    stdPath=folderPath+'_meta/meta_study.csv'
+    docPath=folderPath+'_meta/meta_documents.csv'
+    spkPath=folderPath+'_meta/meta_speakers.csv'
+    codPath=folderPath+'_meta/meta_codes.csv'
+    
+    csv_docs = [docPath, spkPath]
+
+    for doc in csv_docs:
+        
+        if os.path.exists(doc):
+        
+            delimiter = getCsvDelimiter(doc)
+            
+            print(delimiter+doc)
+            
+            if(not delimiter == ';'):
+                print('wrong delimiters in csv files')
                 
-                file_location = '%s/%s'%( folderPath, str(row['*file']) )
-                try:
-                    open_file = open(file_location)
-                    print(file_location)
-                    
-                    
-                except IOError, e:
-                    if(e.args[0] == 2):#no such file or directory
-                        error = True
-                        error_dict.update({file_location:e.args[1]})
-
-                       
-                        logger.info({file_location:e.args[1]})
-                else:
-                    logger.info(file_location+" exists")
-                   
-        print( error_dict )         
-        print('######################'+str(i)+'############################')   
-        if(error is True):
-            return {'status':False, 'error_dict':error_dict}
+                return json.dumps({'error':'wrong_delimiter'})
+            
+                #exit('The delimiter of all csv files must be ;')
         else:
-            return True
+            print(doc+'is missing in the zip file.')
+            
+            return json.dumps({'error':'document_missing'})
+        
+            #exit()
+            
+        return True   
+
+
+    #mandatoryFields = ['*id','*name','*category','*description','*location','*date']
+    logger.info("=========== PARSING META_DOCUMENTS.CSV TO CHECK IF A FILE IS MISSING IF TRUE IMPORT IS CANCELLED")
+    ###### Parsing Documents
+    
+    doc = bag.csv2.UnicodeDictReader(open(docPath, 'r'), delimiter=getCsvDelimiter(docPath),
+                            encoding='utf-8')
+
+    error = False
+    error_dict = {}
+    i = 0
+
+    for counter, row in enumerate(doc):
+        i += 1
+        
+        if row['*id']!='*descr':
+            
+            file_location = '%s/%s'%( folderPath, str(row['*file']) )
+            
+            #Check if categories are known
+            doc_category1 =     row['*researchPhase'].lower().replace(" ","")
+            doc_category2 =     row['*documentType'].lower().replace(" ","")
+            doc_category3 =     row['*article'].lower().replace(" ","")
+            
+            if doc_category1 in DOC_CAT_1.keys() and doc_category2 in DOC_CAT_2.keys() and doc_category3 in DOC_CAT_3.keys():
+                pass
+            else :
+                print('please check that all doc_category are in globalvars... %s %s %s'% (doc_category1, doc_category2, doc_category3))
+                
+                return json.dumps({'error':'category_globalvars'})
+                #exit()
+            ##############################
+            
+            try:
+                open_file = open(file_location)
+                #print(file_location)
+                
+                
+            except IOError, e:
+                if(e.args[0] == 2):#no such file or directory
+                    error = True
+                    error_dict.update({file_location:e.args[1]})
+
+                    print({file_location:e.args[1]})
+                    logger.info({file_location:e.args[1]})
+            else:
+                #print(file_location+" exists")
+                logger.info(file_location+" exists")
+               
+    print( error_dict )         
+    print('######################'+str(i)+'############################')   
+    if(error is True):
+        return {'status':False, 'error_dict':error_dict}
+    else:
+        return True
+        
+        
 
 
 ###########################################################################
 def importEnqueteUsingMeta(upPath,folderPath):
     logger.info( "import enquete from:'%s' folder:'%s'" % (upPath, folderPath))
+    print( "import enquete from:'%s' folder:'%s'" % (upPath, folderPath))
 
     stdPath=folderPath+'_meta/meta_study.csv'
     docPath=folderPath+'_meta/meta_documents.csv'
@@ -202,19 +248,22 @@ def importEnqueteUsingMeta(upPath,folderPath):
     codPath=folderPath+'_meta/meta_codes.csv'
     
     #Check if every files exists in meta_documents.csv
-    check = isMetaDocOK(folderPath,docPath)
+    check = isMetaDocOK(folderPath)
+    
+    #exit()
     """
     if(check == True):
         pass
     else:
         logger.info("=========== PARSING META_DOCUMENT.CSV CANCELLED")
         return check
-    
+        exit()
+    """
     logger.info("=========== PARSING META_STUDY.CSV")
     ### Parsing Study metadatas (the only file mandatory!)
-    """
+    
 
-    std = bag.csv2.UnicodeDictReader(open(stdPath),delimiter='\t',quotechar='"')
+    std = bag.csv2.UnicodeDictReader(open(stdPath),delimiter=getCsvDelimiter(stdPath),quotechar='"')
     headers = std.fieldnames
     allmeta={}
     allmeta['values']={}    # store metadata
@@ -275,8 +324,10 @@ def importEnqueteUsingMeta(upPath,folderPath):
     if os.path.exists(docPath):
         #mandatoryFields = ['*id','*name','*category','*description','*location','*date']
         logger.info(eidstr+"=========== PARSING META_DOCUMENTS.CSV")
+        
+        print(eidstr+"=========== PARSING META_DOCUMENTS.CSV")
         ###### Parsing Documents
-        doc = bag.csv2.UnicodeDictReader(open(docPath),delimiter='\t')
+        doc = bag.csv2.UnicodeDictReader(open(docPath),delimiter=getCsvDelimiter(docPath))
         
         logger.info(eidstr+" %s row found " % doc )
         
@@ -288,29 +339,31 @@ def importEnqueteUsingMeta(upPath,folderPath):
             
             #try:
             logger.info("%s fields : %s" % (eidstr, row ) ) 
-            if row['*id'] != '*descr':
+            if row['id'] != 'descr':
+                
+                print(row['name'])
                 #try:
-                file_location =     folderPath+row['*file']                        # if LINK > url , else REF > nothing
+                file_location =     folderPath+row['file']                        # if LINK > url , else REF > nothing
                 file_extension =     file_location.split(".")[-1].upper()
-                doc_name =             row['*name']
-                doc_mimetype =         row['*mimetype'].lower().replace(" ","")
-                doc_category1 =     row['*researchPhase'].lower().replace(" ","")
-                doc_category2 =     row['*documentType'].lower().replace(" ","")
-                doc_category3 =     row['*article'].lower().replace(" ","")
+                doc_name =             row['name']
+                doc_mimetype =         row['mimetype'].lower().replace(" ","")
+                doc_category1 =     row['researchPhase'].lower().replace(" ","")
+                doc_category2 =     row['documentType'].lower().replace(" ","")
+                doc_category3 =     row['article'].lower().replace(" ","")
                 doc_public =         True # ...could be based on categories...
                 doc_description =     ''#row['*description']
-                doc_location =         row['*location']
+                doc_location =         row['location']
                 try:
-                    doc_location_geo =     row['*location_geo']
+                    doc_location_geo =     row['geogloc']
                 except KeyError, e:
                     logger.info( "%s KeyError warning, location_geo field not found or invalid: %s" % (eidstr,e) )
                     doc_location_geo = ""
 
                 # document date
                 try:
-                    doc_date = datetime.datetime.strptime(row['*date'], "%Y_%m_%d") #"31-12-12"
+                    doc_date = datetime.datetime.strptime(row['date'], "%Y_%m_%d") #"31-12-12"
                 except:
-                    logger.info("%s line %s EXCEPT malformed or empty date : %s, supported format 'YYYY_MM_DD'" % ( eidstr, counter, row['*date']))
+                    logger.info("%s line %s EXCEPT malformed or empty date : %s, supported format 'YYYY_MM_DD'" % ( eidstr, counter, row['date']))
                     doc_date = datetime.datetime.today()
 
 
@@ -387,7 +440,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
     if os.path.exists(spkPath):
         logger.info(eidstr+"=========== PARSING META_SPEAKERS.CSV")            
         ###### Parsing Speakers
-        spk = bag.csv2.UnicodeDictReader(open(spkPath),delimiter='\t',quotechar='"')
+        spk = bag.csv2.UnicodeDictReader(open(spkPath),delimiter=getCsvDelimiter(spkPath),quotechar='"')
         headers = spk.fieldnames
         mandatories = ["*pseudo","*id","*type"]
         attributetypes=[]
@@ -401,10 +454,10 @@ def importEnqueteUsingMeta(upPath,folderPath):
                 attributetypes.append(newAttType)
         for row in spk:
             #try:
-            if row['*id']!='*descr':
-                spk_id =     row['*id']
-                spk_type =     SPEAKER_TYPE_CSV_DICT.get(row['*type'],'OTH')
-                spk_name =     row['*pseudo']
+            if row['id']!='descr':
+                spk_id =     row['id']
+                spk_type =     SPEAKER_TYPE_CSV_DICT.get(row['type'],'OTH')
+                spk_name =     row['pseudo']
                 newSpeaker,isnew = Speaker.objects.get_or_create(enquete=newEnquete,ddi_id=spk_id,ddi_type=spk_type,name=spk_name)
                 newSpeaker.public = (spk_type=='SPK' or spk_type=='PRO')
                 for attype in attributetypes:
@@ -423,7 +476,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
     if os.path.exists(codPath):
         logger.info(eidstr+"=========== PARSING META_CODES.CSV")
         ###### Parsing Codes
-        cod = bag.csv2.UnicodeDictReader(open(codPath),delimiter='\t',quotechar='"')
+        cod = bag.csv2.UnicodeDictReader(open(codPath),delimiter=getCsvDelimiter(codPath),quotechar='"')
         # to do later..
     else:
         logger.info(eidstr+"=========== PARSING: no cod meta found")

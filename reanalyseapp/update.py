@@ -3,8 +3,11 @@
 #   Import script for .csv files.
 #    Note: manifest a strong printaholism.
 #
-import sys, os, csv, re
+import sys, os, csv, re, traceback
 from optparse import OptionParser
+import bag.csv2
+import xml.etree.ElementTree as ET
+import os
 
 
 # get path of the django project
@@ -17,42 +20,76 @@ if ppath not in sys.path:
     sys.path.append(ppath)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
+from django.core import serializers
+from django.core.files import File
 
 # django specific import
 from django.conf import settings
-from reanalyseapp.models import Enquete, Texte, Tag
+from outside.models import VizControl, Enquiry
 from datetime import datetime
 
 from reanalyseapp.views import *
+
+
+from reanalyseapp.models import *
 
 def update( textes, enquete, csvdict ):
 
     print "        %s documents found in enquete: \"%s\", id:%s" % ( textes.count(), enquete.name, enquete.id )
     print
-
+    
+    
+    #Create vizControl entry
+    
+    try:
+        t = VizControl.objects.get( enquete=enquete )
+    except VizControl.DoesNotExist, e:
+        print  "            creating vizControl..."
+        viz = VizControl( enquete=enquete, timeline=True, classement=True, map=True )
+        viz.save()
+    
+   
+    
+    
     for (counter, row) in enumerate(csvdict):
-        # print row
+        
+        
         if counter == 0:
             print "        keys: %s" % row.keys()
             # normally, the second meta_documents csv file line is a field description header.
             continue
         print "        %s." % counter
+        
+       
         try:
-            texte_url = row['*file']
-            texte_name = row['*name']
-            locationgeo = re.sub( r'[^0-9\.,-]', '', row['*locationgeo'])
-            #researcher = row['*researcher']
-            article =  row['*article']
+            texte_url = row['file']
+            texte_name = row['name']
+            locationgeo = re.sub( r'[^0-9\.,-]', '', row['locationgeo'])
             
-            if('/' in row['*date']):
-                dateFormat = "%d/%m/%y"
-            elif('_' in row['*date']) :
-                dateFormat = "%d_%m_%y"
-            elif('-' in row['*date']) :
-                dateFormat = "%d-%m-%y"
+
+            
+            #researcher = row['*researcher']
+            article =  row['article']
+            
+            if('/' in row['date']):
+                sep = "/"
+            elif('_' in row['date']) :
+                sep = "_"
+            elif('-' in row['date']) :
+                sep = "-"
+            
+            if('00' in row['date']):
+                dateFormat = '%y'
+                #row['date'] = row['date'].replace('00', '').replace(sep, '')
+                
+                print(row['date'])
+            else:
+                dateFormat = '%d'+sep+'%m'+sep+'%y'
+            
+            
             
             #print(row['*date'])
-            date = row['*date']#datetime.datetime.strptime(row['*date'], dateFormat) #"31-12-12"
+            date = row['date'].replace(sep, '-')#datetime.datetime.strptime(row['*date'], dateFormat) #"31-12-12"
             
             #date = datetime.datetime.strptime(row['*date'], '%d/%m/%y').strftime(dateFormat)       
            
@@ -63,7 +100,7 @@ def update( textes, enquete, csvdict ):
         # print row['*name']doc_name =             row['*name']
         
         try:
-            texte = Texte.objects.get( enquete=enquete, name=row['*name'], locationpath__regex=( ".?%s" % os.path.basename( texte_url ) ) )
+            texte = Texte.objects.get( enquete=enquete, name=row['name'], locationpath__regex=( ".?%s" % os.path.basename( texte_url ) ) )
 
         except Texte.DoesNotExist, e:
             print "            No texte found with : \"%s\", %s " % ( texte_name, e )
@@ -122,11 +159,29 @@ def install( upload_path, enquete_path ) :
     print "        installation completed."
 
 
-from reanalyseapp.models import *
+
+
 
 def testTEIparse(texte_id):
-    texte = Texte.objects.get(id=texte_id)
-    parseXmlDocument(texte)
+    
+    ids = texte_id.split(",")
+    
+    print(ids)
+    
+    exit
+    
+    
+    for id in ids:
+
+        texte = Texte.objects.get(id=id)
+        try:
+            texte.parseXml()
+        except Exception, e:
+            print(e)
+            print "Exception in user code:"
+            print '-'*60
+            traceback.print_exc(file=sys.stdout)
+            print '-'*60
     
 
 def testEnqueteImport(foldName):
@@ -139,10 +194,12 @@ def testEnqueteImport(foldName):
    
    e = importEnqueteUsingMeta(upPath,enqueterootpath)
    
-   if(e != None):
-       doFiestaToEnquete(e)
-   else:
-        print('ok')
+   print(e)
+   
+   #if(e != False):
+   doFiestaToEnquete(e)
+   #else:
+    #    exit()
 
 
 def deleteSpeakers(enquete_id):
@@ -156,6 +213,67 @@ def deleteSpeakers(enquete_id):
         print(speakers)
         for s in speakers :
             s.delete()
+            
+
+
+
+def reloadSpeakers(enquete_id, spkPath):
+    
+    enquete = Enquete.objects.get(id=enquete_id )
+    print(spkPath)
+    if os.path.exists(spkPath):
+        print("=========== PARSING META_SPEAKERS.CSV")            
+        ###### Parsing Speakers
+        spk = bag.csv2.UnicodeDictReader(open(spkPath),delimiter=getCsvDelimiter(spkPath),quotechar='"')
+        headers = spk.fieldnames
+        mandatories = ["*pseudo","*id","*type"]
+        attributetypes=[]
+        
+        
+        
+        for catval in headers:
+            if catval not in mandatories: # we create only "un-mandatory" attributetypes, since mandatories are stored in speaker model structure
+                if catval.startswith("_") or catval.startswith("*"):
+                    publicy = '0'
+                else:
+                    publicy = '1'
+        
+                newAttType,isnew = AttributeType.objects.get_or_create(enquete=enquete,publicy=publicy,name=catval)
+                attributetypes.append(newAttType)
+        
+        for row in spk:
+        
+            #try:
+            if row['id']!='descr':
+                spk_id =     row['id']
+                spk_type =     SPEAKER_TYPE_CSV_DICT.get(row['type'],'OTH')
+                spk_name =     row['pseudo']
+        
+                #verify if the speaker exists
+                
+                
+                
+                newSpeaker,isnew = Speaker.objects.get_or_create(enquete=enquete,ddi_id=spk_id,ddi_type=spk_type,name=spk_name)
+                
+                
+                
+                newSpeaker.public = (spk_type=='SPK' or spk_type=='PRO')
+    
+                for attype in attributetypes:
+                    
+                    attval=row[attype.name]
+                    if attval=='':
+                        attval='[NC]'
+                        newAttribute,isnew = Attribute.objects.get_or_create(enquete=enquete,attributetype=attype,name=attval)
+                        newSpeaker.attributes.add(newAttribute)
+               
+                try:
+                   newSpeaker.save()
+                except Exception, error:
+                    print "An exception was thrown!"
+                    print str(error)
+    else:
+        print("=========== PARSING: no spk meta found")
            
 #
 #CheckMetaDocuments
@@ -176,7 +294,7 @@ def isMetaDocOK(upload_path, enquete_path):
         error_dict = {}
         
         for counter, row in enumerate(doc):
-            if row['*id']!='*descr':
+            if row['*id']!='descr':
                 file_location = upload_path+row['*file']
                 try:
                     open(file_location)                        
@@ -229,6 +347,7 @@ def main( argv ):
     parser.add_option("-f", "--function", dest="func", help="update function", default="update" )
     parser.add_option("-d", "--document_id", dest="document_id", help="document id (Texte)", default="" )
     parser.add_option("-D", "--directory", dest="directory", help="upload directory study", default="" )
+    parser.add_option("-F", "--filetype", dest="filetype", help="filetype for backup data file (xml, json, yaml)", default="json" )
 
     ( options, argv ) = parser.parse_args()
 
@@ -265,7 +384,18 @@ def main( argv ):
        # reparseAllteis file of an enquete
        return parseAllTeis( options.enquete_id )
 
-   
+    
+    if options.func == "exportEnquete" :
+       print(options.func)
+       # reparseAllteis file of an enquete
+       return exportEnquete( options.enquete_id, options.filetype )
+    
+    
+    if options.func == "reloadSpeakers" :
+        print(options.enquete_id)
+        return reloadSpeakers( options.enquete_id, options.csvfile )
+    
+    
     if options.func == "deleteSpeakers" :
         print(options.func)
         # reparseAllteis file of an enquete
@@ -290,8 +420,10 @@ def main( argv ):
         error("no Texte is attached ...? Is that possible ?", parser )
 
     # parse csv file !
-    f = open( options.csvfile, 'rb' )
-    csvdict = csv.DictReader( f, delimiter="\t" )
+
+    csvdict = bag.csv2.UnicodeDictReader(open(options.csvfile, 'rb'), delimiter=';',
+                            encoding='utf-8')
+    
     for t in textes:
        pass# print(textes.count())#print t.name #, t.locationpath
     update( textes, enquete, csvdict )
@@ -306,12 +438,210 @@ def main( argv ):
     """
 
 
+
+def exportEnquiry(enquiry_id, enquete_id):
+    enquiry = Enquiry.objects.filter(enquiry_id)
+    pins = enquiry.pins.all()
+    tags = enquiry.tags.all()
+    
+    #serialize
+    
+
+def exportEnquete(enquete_id, filetype):
+    
+    os.system('rm /var/opt/reanalyse/backup_data/backup_enquete.xml;touch backup_enquete.%s' % filetype)
+    
+    
+    print('enquetes')
+    enquetes = Enquete.objects.filter(id=enquete_id)
+
+    enquete = Enquete.objects.get(id=enquete_id)
+
+    
+    
+    print('enquiries')
+    enquiries = Enquiry.objects.filter(enquete = enquete)
+    
+    
+    enquiriesPins = []
+    enquiriesTags = []
+    for enquiry in enquiries:
+        enquiriesPins += enquiry.pins.all()
+        enquiriesTags += enquiry.tags.all()
+    
+    enquiriesPinsGeo = []
+    for enquiryPin in enquiriesPins:
+        enquiriesPinsGeo += enquiryPin.geos.all()
+        
+    print('tags')
+    tags = enquete.tags.all()
+    
+    textes = Texte.objects.filter(enquete = enquete)
+    
+    print('textesTags')
+    textesTags = []
+    for texte in textes:
+        textesTags += texte.tags.all()
+    
+    
+    print('attributes')
+    attributeTypes = AttributeType.objects.filter(enquete = enquete)
+    attributes = Attribute.objects.filter(enquete = enquete)
+    
+    print('speakers')
+    speakers = Speaker.objects.filter(enquete = enquete)
+    
+    print('wordEntitySpeakers,speakerTextes,speakerAttributes')
+    wordEntitySpeakers = []
+    speakerTextes = []
+    speakerAttributes = []
+    for speaker in speakers:
+        speakerTextes += speaker.textes.all()
+        wordEntitySpeakers += WordEntitySpeaker.objects.filter(speaker=speaker.id)
+        speakerAttributes += speaker.attributes.all()
+    
+    
+    print('wordEntitySpeakerTextes')
+    wordEntitySpeakerTextes = []
+    for wordEntitySpeaker in wordEntitySpeakers:
+        wordEntitySpeakerTextes += wordEntitySpeaker.textes.all()
+   
+    
+    print('speakersets')
+    speakerSets = SpeakerSet.objects.filter(enquete = enquete)
+    speakerSetSpeakers = []
+    for speakerSet in speakerSets:
+        speakerSetSpeakers += speakerSet.speakers.all()
+        
+    
+    print('codes')
+    codes = Code.objects.filter(enquete = enquete)
+    codeTextes = []
+    for code in codes:
+        codeTextes += code.textes.all()
+    
+    print('sentence')
+    sentence = Sentence.objects.filter(enquete = enquete)
+    wordEntities = WordEntity.objects.filter(enquete = enquete)
+    wordEntityTextes = []
+    for wordEntity in wordEntities:
+        wordEntityTextes += wordEntity.textes.all()
+    
+    
+    print('word')
+    word = Word.objects.filter(enquete = enquete)
+    print('ngram')
+    ngram = Ngram.objects.filter(enquete = enquete)
+    print('ngramspeaker')
+    ngramSpeaker = NgramSpeaker.objects.filter(enquete = enquete)
+    
+    print('visualizations')
+    visualizations = Visualization.objects.filter(enquete = enquete)
+    vizTextes = []
+    vizSpeakers = []
+    for visualization in visualizations:
+        vizTextes += visualization.textes.all()
+        vizSpeakers += visualization.textes.all()
+    
+    
+    print('create big object')
+    
+    all_objects = list(tags)
+    
+    all_objects += list(enquetes)
+    
+    all_objects +=  list(enquiries)
+    all_objects += list(enquiriesPins)
+    all_objects += enquiriesPinsGeo
+
+    
+    all_objects += list(textes)
+    all_objects += list(textesTags)
+    
+    all_objects += list(codes)
+    all_objects += list(codeTextes)
+    
+    
+    all_objects += list(attributes)
+    all_objects += list(attributeTypes)
+    
+    all_objects += list(speakers)
+    all_objects += list(speakerTextes)
+    all_objects += list(speakerAttributes)
+    
+    all_objects += list(speakerSets)
+    all_objects += list(speakerSetSpeakers)
+    
+    
+    all_objects += list(wordEntities)
+    all_objects += list(wordEntityTextes)
+    
+    all_objects += list(word)
+    
+
+    all_objects += list(sentence)
+    
+    
+    all_objects += list(wordEntitySpeakers)
+    all_objects += list(wordEntitySpeakerTextes)
+    
+    
+    all_objects += list(visualizations)
+    all_objects += list(vizSpeakers)
+    all_objects += list(vizTextes)
+    
+    all_objects += list(ngram)
+    all_objects += list(ngramSpeaker)
+    
+    all_objects += enquiriesPins
+    all_objects += enquiriesTags
+    
+    print('serialize big object')
+    data = serializers.serialize('json', all_objects)
+    
+    
+    print('save file')
+    with open("backup_enquete.json", "w") as f:
+        f.write(data)
+
+    
+    
+    """
+    root = ET.fromstring(data)
+    
+    api_results = root.findall('.//object')
+    
+    for object in api_results:
+        
+        try:
+            del object.attrib["pk"]
+        except:
+            pass
+        
+    tree = ET.ElementTree(root)
+    with open("backup_enquete.xml", "w") as f:
+        tree.write(f)
+    
+    """
+    
+    print('change location file path')
+    os.system('perl -pi -e "s/\/var\/opt\/reanalyse/\/datas\/www\/app/" /var/opt/reanalyse/backup_data/backup_enquete.%s;sed -i "s/\/var\/opt\/reanalyse/\/datas\/www\/app/g" /var/opt/reanalyse/backup_data/backup_enquete.%s' % (filetype, filetype))
+    
+    
+    print('Zip enquete')
+    #zip enquete path
+    os.system("tar -cvf --no-recursion /var/opt/reanalyse/backup_data/enquete.tar %s " % (enquete.uploadpath))
+    
+
+
 def parseAllTeis(enquete_id):
     
     textes = Texte.objects.filter(enquete_id=enquete_id, doctype="TEI")
 
     for t in textes :
-        parseXmlDocument(t)
+        
+        if not t.id == 14825:
+            parseXmlDocument(t)
     
     
 def testDownload(enquete_id):
