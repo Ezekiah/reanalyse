@@ -23,7 +23,7 @@ from reanalyseapp.models import Enquete, Tag, Texte, AccessRequest
 from glue.models import Pin, Page
 from glue.forms import AddPageForm, AddPinForm, EditPinForm
 
-from outside.models import Enquiry, Subscriber, Confirmation_code 
+from outside.models import Enquiry, Subscriber, Confirmation_code, VizControl
 from outside.sites import OUTSIDE_SITES_AVAILABLE
 from outside.forms import LoginForm, AddEnquiryForm, SubscriberForm, SignupForm, AccessRequestForm, ChangePasswordForm, ReinitializePasswordForm
 
@@ -132,6 +132,13 @@ def enquete( request, enquete_id ):
 	data['enquete'] = get_object_or_404( Enquete, id=enquete_id )
 	data['disabled'] =  [ t.slug for t in data['enquete'].tags.filter( type=Tag.DISABLE_VISUALIZATION ) ]
 	
+	try:
+		data['vizControl'] = VizControl.objects.get( enquete = enquete_id )
+	except VizControl.DoesNotExist,e:
+		viz = VizControl( enquete=data['enquete'], timeline=True, classement=True, map=True )
+		viz.save()
+		data['vizControl'] = VizControl.objects.get( enquete = enquete_id )
+				
 	try:
 		data['enquiry'] = Enquiry.objects.get( enquete=enquete_id, language=data['language'] )
 	except Enquiry.DoesNotExist,e:
@@ -254,6 +261,10 @@ def document( request, document_id ):
 	data['document'].spec_id = locationpath.split('/')[-1].replace('_', ' _ ')
 
 	
+	if( '01-01' in str(data['document'].date ) or '01/01' in str(data['document'].date )):
+		data['document'].date = str(data['document'].date).replace('-01-01', '')
+		data['document'].date = str(data['document'].date).replace('/01/01', '')
+		
 	
 	data['enquete'] = enquete = document.enquete
 	data['mimetype'] = guess_type( document.locationpath )[0]
@@ -1020,18 +1031,18 @@ def enquete_admin(request):
     ### unique foldername if some upload is done 
     sessionFolderName = "up_"+str(time())
     ctx = {'bodyid':'admin','foldname':sessionFolderName}
-    """
+    
     ### todo: move that somewhere else to do it just when website/database is reset
     try:
         init_users()
     except:
         donothing=1
-    
+    """
     ### check if solr launched, relaunch it if needed
     if checkSolrProcess():
         ctx.update({'solrstatus':'was off. but refreshing this page has relaunched it. wait 5,7s and refresh again to be sure'})
     else:
-        ctx.update({'solrstatus':'is running !'})
+        ctx.update({'solrstatus':'is running !'})"""
     ctx.update({'staffemail':settings.STAFF_EMAIL})
     
     ### log file
@@ -1051,10 +1062,10 @@ def enquete_admin(request):
     ctx.update({'page':request.GET.get('page','users')})
     
     ### static pages : (they are also loaded one at at time on the home page) load them all now
-    for name in ['project','method','access']:
+    """for name in ['project','method','access']:
         for lan in ['en','fr']:
             nothing = getStaticHtmlContent(name,lan)
-    
+    """
     ### users
     users={}
     users['header']=['username','name','email','status','group','full study access','joined','last login']
@@ -1087,7 +1098,7 @@ def enquete_admin(request):
         uTab.append(u.last_login.strftime("%a %d at %Hh%M"))
         users['rows'].append(uTab)
     ctx.update({'users':users})
-    """
+    
     ### upload of available studies
     
     

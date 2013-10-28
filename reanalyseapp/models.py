@@ -17,9 +17,6 @@ from lxml import etree
 
 from django.conf import settings
 
-#JRI:
-import psutil
-
 # for date manip on parsing
 import datetime
 
@@ -120,6 +117,9 @@ class Tag(models.Model):
 
 	def __unicode__(self):
 		return "%s : %s"% ( self.get_type_display(), self.name)
+	
+	def natural_key(self):
+		return ( self.name, self.slug, self.type)
 
 	class Meta:
 		ordering = ["type", "slug" ]
@@ -501,12 +501,13 @@ def parseXmlDocument(texte):
 	try:
 		tree = etree.parse(texte.locationpath)
 	except Exception, e:
+		
 		print('error sur '+texte.locationpath+'   '+str(e))
 		return
+	
 	root = tree.getroot()
 	roottag = root.tag
-
-	del tree	
+	
 	######################### NB + todo
 	# the current parsing loops are expensive !
 	# it may be better to use xslt to "parse" xml
@@ -563,13 +564,10 @@ def parseXmlDocument(texte):
 			for n,p in enumerate(persons):
 				speakersArray.append( p.attrib[XMLNMS+'id'] )
 		# every speaker turn
-		try:
-			tnode = root.findall(XMLTEINMS+'text/'+XMLTEINMS+'body')[0]
-			childs = tnode.getchildren()
-			parseTEIDivs(texte,childs,speakersArray,speakersDDIDict)
-		except Exception, e:
-			print('error sur '+texte.locationpath+'   '+str(e))
-		return
+		tnode = root.findall(XMLTEINMS+'text/'+XMLTEINMS+'body')[0]
+		childs = tnode.getchildren()
+		parseTEIDivs(texte,childs,speakersArray,speakersDDIDict)
+	
 	#########################
 	else:
 		print("PB:XML file not parsed cause neither <Trans> or <TEI> tag was found")
@@ -745,11 +743,10 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 				pass
 			
 			divNodesCur+=1
-
 		# gets % of "loading completeness"
 		compl=int(divNodesCur*100/divNodesTotal)
-		#JRI
-		#print("MEMORY:"+str(psutil.phymem_usage()))
+		 # texte.save() is taking a lot of memory !!
+		# MONITORING : print("MEMORY:"+str(psutil.phymem_usage()[3]))
 		if compl!=texte.statuscomplete and compl%5==0:
 			texte.statuscomplete = compl
 			texte.save()
@@ -771,7 +768,7 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 			s.save()
 		except Exception, e:
 			print("location : "+texte.locationpath)
-			print("erreur : "+str(e))
+			print(" : "+str(e))
 			"""
 			for speaker in speakerContentDict :
 				print speaker

@@ -447,9 +447,9 @@ def exportEnquiry(enquiry_id, enquete_id):
     #serialize
     
 
-def exportEnquete(enquete_id, filetype):
-    
-    os.system('rm /var/opt/reanalyse/backup_data/backup_enquete.xml;touch backup_enquete.%s' % filetype)
+def exportEnquete(enquete_id, filetype="xml"):
+    filetype='xml'
+    #os.system('rm /var/opt/reanalyse/backup_data/backup_enquete.xml;touch backup_enquete.%s' % filetype)
     
     
     print('enquetes')
@@ -546,17 +546,19 @@ def exportEnquete(enquete_id, filetype):
     
     print('create big object')
     
-    all_objects = list(tags)
+    #all_objects = list(tags)
     
-    all_objects += list(enquetes)
+    all_objects = list(enquetes)
     
-    all_objects +=  list(enquiries)
-    all_objects += list(enquiriesPins)
-    all_objects += enquiriesPinsGeo
-
+    
+    all_objects += list(enquiries)
+    all_objects += list(senquiriesPins)
+    all_objects += list(enquiriesPinsGeo)
+    all_objects += list(enquiriesTags)
+    
     
     all_objects += list(textes)
-    all_objects += list(textesTags)
+    #all_objects += list(textesTags)
     
     all_objects += list(codes)
     all_objects += list(codeTextes)
@@ -573,7 +575,40 @@ def exportEnquete(enquete_id, filetype):
     all_objects += list(speakerSetSpeakers)
     
     
-    all_objects += list(wordEntities)
+    all_objects += list(visualizations)
+    all_objects += list(vizSpeakers)
+    all_objects += list(vizTextes)
+    
+    all_objects += list(ngram)
+    all_objects += list(ngramSpeaker)
+    
+   
+    
+    print('serialize big object')
+    data = serializers.serialize('xml', all_objects, use_natural_keys=False)
+    
+    print('save file')
+    with open("/var/opt/reanalyse/backup_data/backup_enquete.xml", "w") as f:
+        f.write(data)
+       
+    root = ET.fromstring(data)
+    
+    api_results = root.findall('.//object')
+    
+    for object in api_results:
+        
+        try:
+            object.attrib["pk"] = '57'+object.attrib["pk"]
+            #print object.attrib["pk"]
+        except:
+            pass
+        
+    tree = ET.ElementTree(root)
+    with open("/var/opt/reanalyse/backup_data/backup_enquete.xml", "w") as f:
+        tree.write(f)
+    
+        
+    all_objects = list(wordEntities)
     all_objects += list(wordEntityTextes)
     
     all_objects += list(word)
@@ -586,27 +621,16 @@ def exportEnquete(enquete_id, filetype):
     all_objects += list(wordEntitySpeakerTextes)
     
     
-    all_objects += list(visualizations)
-    all_objects += list(vizSpeakers)
-    all_objects += list(vizTextes)
-    
-    all_objects += list(ngram)
-    all_objects += list(ngramSpeaker)
-    
-    all_objects += enquiriesPins
-    all_objects += enquiriesTags
-    
     print('serialize big object')
-    data = serializers.serialize('json', all_objects)
+    data = serializers.serialize('xml', all_objects, use_natural_keys=False)
     
     
     print('save file')
-    with open("backup_enquete.json", "w") as f:
+    with open("/var/opt/reanalyse/backup_data/backup_enquete-special.xml", "w") as f:
         f.write(data)
 
+
     
-    
-    """
     root = ET.fromstring(data)
     
     api_results = root.findall('.//object')
@@ -614,25 +638,25 @@ def exportEnquete(enquete_id, filetype):
     for object in api_results:
         
         try:
-            del object.attrib["pk"]
+            object.attrib["pk"] = '57'+object.attrib["pk"]
         except:
             pass
         
     tree = ET.ElementTree(root)
-    with open("backup_enquete.xml", "w") as f:
+    with open("/var/opt/reanalyse/backup_data/backup_enquete-special.xml", "w") as f:
         tree.write(f)
     
-    """
+    
+    
     
     print('change location file path')
     os.system('perl -pi -e "s/\/var\/opt\/reanalyse/\/datas\/www\/app/" /var/opt/reanalyse/backup_data/backup_enquete.%s;sed -i "s/\/var\/opt\/reanalyse/\/datas\/www\/app/g" /var/opt/reanalyse/backup_data/backup_enquete.%s' % (filetype, filetype))
     
-    
+    """
     print('Zip enquete')
     #zip enquete path
     os.system("tar -cvf --no-recursion /var/opt/reanalyse/backup_data/enquete.tar %s " % (enquete.uploadpath))
-    
-
+    """
 
 def parseAllTeis(enquete_id):
     

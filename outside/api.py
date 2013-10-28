@@ -190,7 +190,11 @@ def enquiry_upload_pin( request, enquiry_id, pin_slug ):
 		parent_pin_en = Pin.objects.get(slug=pin_slug, language="EN")
 		parent_pin_fr = Pin.objects.get(slug=pin_slug, language="FR")
 	except Pin.DoesNotExist, e:
-		return response.throw_error( error="%s" % e, code=API_EXCEPTION_DOESNOTEXIST ).json()
+		return response.throw_error( error="Le pin %s doit etre cree dans les deux langues" % pin_slug, code=API_EXCEPTION_DOESNOTEXIST ).json()
+		
+		
+	
+	
 		
 
 	for f in request.FILES.getlist('files[]'):
@@ -215,7 +219,7 @@ def enquiry_upload_pin( request, enquiry_id, pin_slug ):
 			p_fr.save()
 
 		except IntegrityError, e:
-			return response.throw_error( error="%s" % e, code=API_EXCEPTION_INTEGRITY ).json()
+			return response.throw_error( error="%s <u>le pin %s existe deja</u>" % (e, f.name), code=API_EXCEPTION_INTEGRITY ).json()
 
 		parent_pin_en.children.add( p_en )
 		parent_pin_fr.children.add( p_fr )

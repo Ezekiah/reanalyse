@@ -1397,19 +1397,19 @@ a:hover.text_anyparvb {
 }
 
 /* ========================== IN MARGIN */
-.text_margL, .text_margR {
+/*.text_margL, .text_margR {
 	position:absolute;
 	text-decoration: none;
 	width:20px;
 }
 .text_margL {
-    left: -91px;
-    top: 11px;
+    left: -13px;
+    top: 8px;
 }
 .text_margR {
     right: -18px;
     top: 12px;
-}
+}*/
 /* ========================== TEXT STYLING */
 .text_sic,
 a.text_uncertain{

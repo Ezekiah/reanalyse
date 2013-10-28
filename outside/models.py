@@ -32,6 +32,24 @@ class Message( models.Model ):
 			'date' : self.date.isoformat()
 		}
 
+#display or not the viz
+class VizControl( models.Model ):
+	enquete = models.ForeignKey( Enquete, related_name="vizControl" )
+	timeline = models.BooleanField( default=True )
+	classement = models.BooleanField( default=True )
+	map = models.BooleanField( default=True )
+	
+	def __unicode__(self):
+		return "%s %s" % ( self.enquete.id, self.enquete.name )
+	
+	def json( self ):
+		return {
+			'id': self.id,
+			'timeline':self.timeline,
+			'classement' : self.classement,
+			'enquete' : self.enquete
+		}
+	
 
 # Enquiry extends PAGEAbstract, cfr
 # http://charlesleifer.com/blog/django-patterns-model-inheritance/

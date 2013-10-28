@@ -9,8 +9,7 @@
 
 {% block leftmenu %}
 	{% if request.user.is_staff %}
-	<div id="leftmenucontent">
-		<div class="leftmenublock">
+	<div id="right-sidebar" >
 		<ul>
 			<li><div class="allPage {% if page == 'users' %}currentPage{% endif %}"><a href="?page=users">Access & Users</a></div></li>
 			<li><div class="allPage {% if page == 'upload' %}currentPage{% endif %}"><a href="?page=upload">Add a new Study</a></div></li>
@@ -18,8 +17,8 @@
 			<li><div class="allPage {% if page == 'advanced' %}currentPage{% endif %}"><a href="?page=advanced">Solr & Logs</a></div></li>
 			<li><div class="allPage pageDisabled">Hidden Stage</div></li>
 		</ul>
-		</div>
 	</div>
+		
 	{% endif %}
 {% endblock %}
 
