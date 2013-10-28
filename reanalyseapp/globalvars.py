@@ -37,7 +37,7 @@ DOC_CAT_1['prep']		= '1.Preparatory'
 DOC_CAT_1['col'] 		= '2.Collection'
 DOC_CAT_1['anal'] 		= '3.Analysis'
 DOC_CAT_1['compl'] 		= '4.Complement'
-DOC_CAT_1['add'] 		= '5.Complement'
+DOC_CAT_1['add'] 		= '5.additionnal'
 DOC_CAT_1['ese'] 		= 'ese'			# will not be displayed anyway
 
 # B) meta_documents.csv : COLUMN *documentType that are accepted, and their translation in the view
@@ -53,9 +53,7 @@ DOC_CAT_2['note'] 		= 'Note'
 DOC_CAT_2['prod'] 		= 'Production'
 DOC_CAT_2['revis'] 		= 'Reused'
 DOC_CAT_2['transcr'] 	= 'Transcription'
-"corresp""corresp""reunion""presse""recrut""outil""contextmat""topo""fiche""topo""photo"
-"dessin""entretiencoll""publi""com"
-"lgrise"
+DOC_CAT_2['aide'] 	= 'aide'
 
 
 DOC_CAT_3={}
@@ -75,7 +73,9 @@ DOC_CAT_3['com'] 			= 'com'
 DOC_CAT_3['lgrise'] 		= 'lgrise'
 DOC_CAT_3['finance'] 		= 'finance'
 DOC_CAT_3['budget'] 		= 'budget'
-DOC_CAT_3['materiel'] 		= 'materiel'
+DOC_CAT_3['entretienindiv'] = 'entretienindiv'
+DOC_CAT_3['outils'] = 'outil'
+DOC_CAT_3['base'] = 'base'
 
 # C) meta_documents.csv : COLUMN *mimetype .
 # be careful ! "mimetype" doesn't mean real mimetype of the file, rather the category for the Texte model (to be renamed in Document)
@@ -172,6 +172,7 @@ SENTENCE_UTT_SYMBOLS['not_classified']=' ' # and other keys
 
 ## IMAGE ONLY					aka (hesitation)
 CODES_IMAGE={}
+CODES_IMAGE['break']=					'break'
 CODES_IMAGE['hesitation']=				'hesitation'
 CODES_IMAGE['inaudible']=				'inaudible'
 CODES_IMAGE['interruption']=			'interruption'

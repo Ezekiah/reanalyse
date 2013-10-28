@@ -634,12 +634,19 @@ def save_upload( uploaded, foldname, filename, raw_data ):
 ################################################################################
 @login_required
 def eParseFolder(request,fold):
+    
     # parsing of existing enquete folder
     
     logger.info("PARSING SERVER STUDY: "+fold)
     completePath = settings.REANALYSESAMPLE_STUDIES_FILES + fold + '/'
     # uploaded path is set to fictive location to avoid deleting files
     upPath = completePath + '/inexistent_folder/'
+    check = isMetaDocOK(enqueterootpath)
+            
+    if(not check == True):
+            
+        return HttpResponse(check,'application/json')
+    
     e = importEnqueteUsingMeta(upPath,completePath)
     
     """if(e == False):
@@ -650,7 +657,6 @@ def eParseFolder(request,fold):
 @login_required
 def eParse(request):
     # parsing of .zip file
-    
     d={}
     folname = request.GET.get('foldname','')    
     upPath = settings.REANALYSEUPLOADPATH+folname+"/"
@@ -669,9 +675,14 @@ def eParse(request):
             os.mkdir(upPath+"extracted")
             unzipper = unzip()
             unzipper.extract(upPath+thezip,upPath+"extracted/")
+            
+            
+            
         except Exception as e:
              logger.info("EXCEPT de-zip-ing archive. weird zip ?")
              logger.info(str(e))
+             return HttpResponse(json.dumps({'error':"accents"}),'application/json')
+             
         enqueterootpath = ""
         if os.path.exists(upPath+"extracted/_meta/"):
             enqueterootpath = upPath+"extracted/"
@@ -681,6 +692,14 @@ def eParse(request):
                 if os.path.exists(upPath+"extracted/"+f+"/_meta/"):
                     enqueterootpath = upPath+"extracted/"+f+"/"
         if enqueterootpath!="":
+            
+            #check metadocs
+            check = isMetaDocOK(enqueterootpath)
+            
+            if(not check == True):
+            
+                return HttpResponse(check,'application/json')
+            
             # make object and fetch _meta.csv files 
             e = importEnqueteUsingMeta(upPath,enqueterootpath)
            
