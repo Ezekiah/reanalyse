@@ -94,7 +94,7 @@ oo.enquiry.upload.init = function(){
 				if( data.result.status == "ok"){
 					oo.toast( "COMPLETED GUY!:!!!" );
 				} else{
-					oo.toast( data.result.error, ds.i18n.translate("error"), { stayTime: 2000, cleanup:true });	
+					oo.toast( data.result.error, oo.i18n.translate("error"), { stayTime: 10000, cleanup:true });	
 				}
 			},
 			start: function (e, data) {

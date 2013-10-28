@@ -120,8 +120,16 @@ oo.enq.docs.init = function ( objects ){
 		.attr('data-status', 'active')
 		
 		.html(function(d) {
+			
+			if(d.date.indexOf('01-01') != -1 ) {
+				date = d.date.substring(0, 4)
+			} else {
+				date = d.date.substring(5, 7) + '/' + d.date.substring(0, 4) 
+			}
+			
 			var string = d.title + ' <small>('+d.type+')</small> <br/>';
-			if (typeof d.date != 'undefined' ) string += '<i>' + d.date.substring(5, 7) + '/' + d.date.substring(0, 4) + '</i>' 
+			//if (typeof d.date != 'undefined' ) string += '<i>' + d.date.substring(5, 7) + '/' + d.date.substring(0, 4) + '</i>'
+			if (typeof d.date != 'undefined' ) string += '<i>' + date + '</i>' 
 			if (typeof d.coordinates.properties.name != 'undefined' ) string += '<i>'+d.coordinates.properties.name+'</i>' 
 			return string;
 		})
@@ -146,6 +154,6 @@ oo.enq.docs.init = function ( objects ){
 		.duration(500)
 		.style('margin-top', '0px');
 	
-	$('#documents-inner').slimScroll({height:600, color:'white'});
+	$('#documents-inner').slimScroll({height:750, color:'white'});
 };
 
