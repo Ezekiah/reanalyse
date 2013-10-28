@@ -1,0 +1,295 @@
+{% extends "enquete/middle.html" %}
+{% load i18n %}
+
+{% block less%}
+	{{ block.super }}
+	<link rel="stylesheet/less" type="text/css" href="{{ STATIC_URL }}css/enquete.less">
+	
+{% endblock %}
+
+{% block head %}
+
+	<script type="text/javascript" src="{{ STATIC_URL }}/js/outside/utilScripts.js"></script>
+	<script src="{{ MEDIA_URL }}/fileuploader/fileuploader.js" type="text/javascript"></script>
+<link rel="stylesheet" href="{{ MEDIA_URL }}/fileuploader/fileuploader.css"/>
+<script type="text/javascript">
+	
+	///////////////////////////////////////////////////////////////////////////////////
+	function createUploader(){            
+        var uploader = new qq.FileUploader({
+            element: $('#file-uploader')[0],
+            action: "{% url reanalyseapp.views.eAddAjax %}",
+            debug: true,
+            multiple: true,
+			params: {
+				'csrf_token': '{{csrf_token}}',
+				'csrf_name': 'csrfmiddlewaretoken',
+				'csrf_xname': 'X-CSRFToken',
+				'foldname': '{{foldname}}',
+			},
+			onSubmit: function(id, fileName){
+				// when clicked
+			},
+			onComplete: function( id, fileName, responseJSON ) {
+				// on each file complete
+			},
+			onAllComplete: function( uploads ) {
+				$("#uploadActions").show();
+				// buttons are already made in template in "fileuploader/fileuploader.js"
+				$("#buttCancel").click( function(event) {
+					// create Enquete from uploaded files					
+					doGetAtUrl("{% url reanalyseapp.views.eReset %}?foldname={{foldname}}");
+					$("#uploadActions").remove();
+					createUploader();
+					//event.stopPropagation();
+					//event.preventDefault();
+					return false;
+				});
+				$("#buttOk").click( function(event) {
+					
+					$('.page').append('<div id="lding">Chargement de l\'enquête, cela peut prendre longtemps... <span class="qq-upload-spinner"></span></div>')
+					
+					// create Enquete from uploaded files					
+					doGetAtUrl("{% url reanalyseapp.views.eParse %}?foldname={{foldname}}",
+						function(data, textStatus, jqXHR){
+							
+							if(! data.error) {
+
+								if(data.error == 'wrong_delimiter') {
+									oo.toast( 'Vous devez utiliser le délimiter ";" pour vos fichier CSV.' , oo.i18n.translate("error"), {stayTime:10000, cleanup: true});
+									
+								} else if(data.error == 'document_missing') {
+									oo.toast( 'Vous n\'avez pas ajouté tous les fichiers meta' , oo.i18n.translate("error"), {stayTime:10000, cleanup: true});
+								}
+								else if(data.error == 'accents'){
+									oo.toast( "Erreur, Verifiez que vous n'avez pas mis d'accents dans les noms de fichiers" , oo.i18n.translate("error"), {stayTime:10000, cleanup: true});
+
+								}
+							} else {
+								
+								$('#lding').html('Installation de l\'enquête terminée')
+								
+							}
+							
+							
+						}
+					);
+					
+					
+					//event.stopPropagation();
+					//event.preventDefault();
+					//window.location.href="{% url reanalyseapp.views.eBrowse %}";
+					//window.location.reload();
+					$("#eBrowseNewEnquete").html($('#eBrowseNewEnqueteConfirmed').html());
+					return false;
+					
+				});
+			}
+        });           
+    }
+	///////////////////////////////////////////////////////////////////////////////////
+	$(function () {
+		createUploader();
+  	});
+  	///////////////////////////////////////////////////////////////////////////////////
+  
+ 
+</script>
+	
+{% endblock %}
+
+
+
+
+
+	
+
+
+
+
+
+
+{% block navbar %}	
+	<div id="navbar">
+		<ul class="nav navbar">
+			
+			{% for pin in sections %}
+			<li><a href="#{{ pin.slug }}">{{ pin.title }}</a></li>
+			{% endfor %}
+			
+			
+		</ul>
+	</div>
+{% endblock %}
+
+{% block page_left %}
+
+{% if request.user.is_staff %}
+	
+	<div class="contentHtml">
+	
+		{% if page == 'users' %}
+		<! ================================================= -->
+		<h1>Access & Users</h1>
+		As described (for the public) in the <a href="{{BASE_URL}}?p=access">access</a> page, here is how it works on the admin side:
+		<ol>
+			<li><b>Public users</b> (without login) can only access Overview pages for every study</li>
+			<li>When they ask for the <b>Discover status</b> [online form], an unactivated user is created, and a mail is sent to the staff team</li>
+			<li>Staff can then activate the user listed below (page accessible by clicking on the username, toggle the 'Active' checkbox and save). and send a mail to congratulate the guy.</li>
+			<li>If she/he asks (on a study page) for an <b>Explore status</b> [online form], another mail is sent to the staff, including the 'motivation' field</li>
+			<li>Staff can then add the permission for the enquete asked ('EXPLORe_[id]') to this user (and reply regardly to the guy).</li>
+			<li>do NOT modify other options (groups, other permissions, passwords, etc...)</li>
+		</ol>
+		<p>NB: You can also put a user within the <b>CREATE</b> group, to enable him/her to create/delete visualizations (without access to the admin panel).</p>
+		<p>Current staff email adress is: <i>{{staffemail}}</i></p>
+		<table class="content_norm">
+		<head>
+			{% for h in users.header %}
+			<th>{{h}}</th>
+			{% endfor %}
+		</th>		
+		{% for u in users.rows %}
+		<tr>
+			{% for v in u %}
+			<td>{% autoescape off %}{{v}}{% endautoescape %}</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+		</table>
+		
+		{% else %}
+		{% if page == 'upload' %}
+		<! ================================================= -->
+		<h1>Add a new Study</h1>
+		<div>
+			<h2>We are on dev. stage, it is MANDATORY to load only one study at at time (waiting for errors or completion), to avoid server memry overload !</h2>
+			<h3>You can load studies available on the server</h3>
+			<ul>
+				{% for s in serverAvailableStudies %}
+				<li id="load_{{s.foldername}}">
+			{%comment%}	
+			<a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eParseFolder s.foldername %}");$("#load_{{s.foldername}}").html("study loaded - go look at it");return false;'>{{s.foldername}}</a>
+			{%endcomment%}	</li>
+				{% endfor %}
+			</ul>
+		</div>
+		<div>
+			<h3>Or you can upload an archive.zip file</h3>
+			<ul>
+				<li>with the mandatory <span class="content_norm_file">./_meta/meta_*.csv</span> files describing metadatas</li>	
+				<li>for verbatims, the required format is TEI XML made using Exmaralda & TEI Drop</li>
+				<li>if you don't understand a thing, please read the <a href="{{BASE_URL}}?p=method&q=3">normalization</a> page carefully</li>
+			</ul>
+		</div>
+		<p>
+		<div id="eBrowseNewEnquete">
+			<div id="file-uploader">
+			<noscript>
+				<p>Please enable JavaScript to use file uploader.</p>
+				<!-- or put a simple form for upload here -->
+			</noscript>
+			</div>
+		</div>
+		<div id="eBrowseNewEnqueteConfirmed" style="display:none">
+			Enquete was added ! You can
+			<ul>
+			<li>watch <a href="?page=advanced">logs</a> if you fear something wrong</li>
+			<li>go look at it on the <a href="{% url reanalyseapp.views.eBrowse %}">studies list</a></li>
+			<li>or refresh this page to have fun with another study</li>
+		</div>
+		</p>
+		
+		{% else %}
+		{% if page == 'content' %}
+		<! ================================================= -->
+		<h1>Static Pages</h1>
+			<p>Static pages (project / methodology / access) can be <a href="{{BASE_URL}}/admin/reanalyseapp/sitecontent/">edited</a></p>
+			<ul>
+				<li>Each < h1 > tag splits the content into submenus, and correspond to the name of the left link (eg. here: "Static Pages")</li>
+				<li>if the < h1 > paragraph does not contain anything, it will appear deactivated (eg. here "Hidden Stage")</li>
+				<li>Do NOT change their name or language, or you'll die</li>
+				<li>For the moment, edit is only available in raw html, to allow insertion of js and {django template variables}</li>
+			</ul>
+		
+		{% else %}
+		{% if page == 'advanced' %}
+		<! ================================================= -->
+		<h1>Solr & Logs</h1>
+		<h3>Solr {{solrstatus}}</h3>
+			<ul>
+				<li>make sure <a href="{{solr_url}}/solr/admin/">solr</a> is online if you need documents to be indexed (you could <a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.killSolrProcess %}");return false;'>kill the process</a> and refresh this page to relauch it)</li>
+				<li>if you like to discover new things, you can <a href="{{solr_url}}/solr/admin/schema.jsp">browse the index</a> on the solr server page</li>
+				<li>you could - for all studies - <a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eSolrIndexClear %}");return false;'>clear_index</a>, then <a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eSolrIndexUpdate %}");return false;'>update_index</a> if you know what that means</li>
+				<li>you could re-fetch ngrams from index for enquête: (could take a while)
+					<ul>
+					{% if enquetes %}
+					{% for e in enquetes %}
+						<li><a href="{% url reanalyseapp.views.resetNgrams e.id %}">refetch ngrams</a> [{{e.id}}] {{e.name}}</li>
+					{% endfor %}
+					{% else %}
+						<li><i>- no study available -</i></li>
+					{% endif %}
+					</ul>
+				</li>
+				<li>note: ... means that django will ask solr-index for ngrams, and store some (based on tfidf) of them in db for easiest further access (complex queries) when making viz</li>
+				<li>you could <a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.clearLogFile %}",function(){location.reload(true);});return false;'>clear log file</a> (will refresh page)</li>
+			</ul>
+		<h3>Log Django</h3>
+		<ul class="logconsole">
+			{% autoescape off %}
+			{% for l in log_django %}<li>{{l}}</li>{% endfor %}
+			{% endautoescape %}
+		</ul>
+		<a href="?page=advanced&log=700">show me more log lines, 'cause i like it ...</a>
+		{% endif %}
+		{% endif %}
+		{% endif %}
+		{% endif %}
+		
+	</div>
+	
+{% endif %}
+
+<! ================================================= -->
+
+{%endblock%}
+
+
+{% block right_sidebar %}
+
+{% if request.user.is_staff %}
+
+
+
+<div id="right-sidebar" style="height: 616px;color:grey">
+							
+
+	
+	<div style="border-bottom:none;overflow:hidden;height:auto" id="admin-menu">
+		<div style="position: relative; overflow: hidden; width: auto;" class="slimScrollDiv">
+			
+		<div style="float:left;overflow: hidden; width: auto;" id="documents-inner">
+			
+			
+			<ul style="color:grey">
+		<li class="active"><a href="?page=users">Access & Users</a></li>
+		<li class="active"><a href="?page=upload">Add a new Study</a></li>
+		<li class="active"><a href="?page=content">Static Pages</a></li>
+		<li class="active"><a href="?page=advanced">Solr & Logs</a></li>
+	</ul>
+
+		</div>
+	
+		</div>
+	
+	</div>
+	
+		
+</div>
+
+
+
+
+{%endif%}
+{%endblock%}
+

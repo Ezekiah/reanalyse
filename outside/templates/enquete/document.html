@@ -17,13 +17,24 @@
 
 	{% if document.doctype == "CSV"%}
 	
+	<style>
+		#right-sidebar{
+			height:"290px"
+			
+		}
+		
+	</style>
+	
 	<script src="{{ STATIC_URL }}/js/csvtotable/js/jquery.csvToTable.js"></script>
     <script src="{{ MEDIA_URL }}/datatables/js/jquery.dataTables.js"></script>
 	<script src="{{ MEDIA_URL }}/datatables/extras/TableTools/media/js/TableTools.min.js"></script>
     <script src="{{ MEDIA_URL }}/datatables/extras/ColReorder/media/js/colReorderResize.js"></script>
-    <link rel="stylesheet" href="{{ MEDIA_URL }}/datatables/extras/flick/jquery.ui.theme.css" type="text/css" id="" media="print, projection, screen" />
+    <!--<link rel="stylesheet" href="{{ MEDIA_URL }}/datatables/extras/flick/jquery.ui.theme.css" type="text/css" id="" media="print, projection, screen" />
     <link rel="stylesheet" href="{{ MEDIA_URL }}/datatables/extras/flick/jquery-ui.css" type="text/css" id="" media="print, projection, screen" />
-    <link rel="stylesheet" href="{{ MEDIA_URL }}/datatables/css/jquery.dataTables.css" type="text/css" id="" media="print, projection, screen" />
+    -->
+    
+    <link rel="stylesheet" href="{{ MEDIA_URL }}/datatables/css/demo_table_original.css" type="text/css" id="" media="print, projection, screen" />
+	
 	
 
 	{%endif%}
@@ -72,10 +83,10 @@
 	  
 	    
 	}
-	
+	/*
 	#right-sidebar{
 		height:auto;
-	}
+	}*/
 	
 	#tei-settings{
 		
@@ -234,7 +245,7 @@
 				</li>
 				
 				<li class="active" >
-					Location : {{document.location}}
+					{% trans "Localisation"%} : {{document.location}}
 				</li>
 				
 				
@@ -263,6 +274,9 @@
 	<br/>
 		{% if texte.doctype|upper == 'TEI' %}
 		<!-- =============================== -->
+	
+	<div class="nb_text_part" style="visibility:hidden">{{maxpart}}</div>
+	
 	
 
 	
@@ -305,7 +319,7 @@
 					
 					<ul>
 						
-						<li><h4 class="subtitle">{% trans 'Speaker(s)'%} : </h4></li>
+						<li><h4 class="subtitle">{% trans 'Enquété(s)'%} : </h4></li>
 					
 					
 						<ul class="spkcheckboxes">
@@ -445,17 +459,32 @@
 	
 	<p>
 		<ul style="margin-left:33px;">
+			
+			{% if speakers.inv %}
 			<li><b>{% trans 'Investigators'%} : </b>
 				{% for i in speakers.inv %}
-				{{i.name}} ({{i|speakerMeta}})
+				{{i.name}} 
 				
 				{% endfor %}
 			</li>
+			{%endif%}
+			
+			{% if speakers.spk %}
 			<li><b>{% trans 'Speakers'%} : </b>
 				{% for s in speakers.spk %}
-				{{s.name}} ({{s|speakerMeta}}) {% if not forloop.last %}, {% endif %} 
+				{{s.name}}  {% if not forloop.last %}, {% endif %} 
 				{% endfor %}
 			</li>
+			{%endif%}
+			
+			{% if speakers.pro %}
+			<li><b>{% trans 'Protagonistes'%} : </b>
+				{% for s in speakers.pro %}
+				{{s.name}}  {% if not forloop.last %}, {% endif %} 
+				{% endfor %}
+			</li>
+			{%endif%}
+			
 		</ul>
 	</p>	
 	
@@ -537,7 +566,8 @@
 
 	///// global vars to feed d3.js streamTimeline
 	var fromTextPart = {{minpart}};
-	var toTextPart = {{maxpart}};
+	var toTextPart = 15;
+	//var toTextPart = {{maxpart}};
 	var maxTextParts = {{totalmaxparts}};
 	
 	///// Fetch text parts functions
@@ -562,9 +592,116 @@
 				//dime.updateView();
 				oo.sidebar.init();
 				
+				$('#verbatim').append(loadingDiv)
+				
+				$('#loadingFetchingText').remove()
+				
+				infinite_scroll()
+				
+				
+				
+				
+				
 			}
 		});
 	}
+	
+	
+	function infinite_scroll() {
+					
+				
+		
+		//INFINITE SCROLL
+		
+		var load = false; // aucun chargement de commentaire n'est en cours
+ 
+		var step = 15;
+		
+		var maxpart = {{maxpart}}
+		
+		var loadingDiv = '<div id="loadingFetchingText"><span class="vizLoadingSpinner"></span> Chargement du document...<div>';
+
+	 
+		$(window).scroll(function(){ // On surveille l'évènement scroll
+			
+			
+			
+			/* la fonction offset permet de récupérer la valeur X et Y d'un élément
+			dans une page. Ici on récupère la position du dernier div qui 
+			a pour classe : ".commentaire" */
+			var offset = $('.text_part:last').offset(); 
+			
+			/* Si l'élément offset est en bas de scroll, si aucun chargement 
+			n'est en cours, si le nombre de commentaire affiché est supérieur 
+			à 5 et si tout les commentaires ne sont pas affichés, alors on 
+			lance la fonction. */
+			if((offset.top-$(window).height() <= $(window).scrollTop()) 
+			&& load==false && ($('.text_part').size()>=15) && 
+			(parseInt($('.text_part:last').find('.text_speaker_namecount').text().replace(".",""))<parseInt($('.nb_text_part').text()))){
+	 			
+	 			$("#verbatim").append(loadingDiv)
+	 			
+	 			
+	 			
+				// la valeur passe à vrai, on va charger
+				load = true;
+	 
+				//On récupère l'id du dernier commentaire affiché
+				var last_id = $('.text_part:last').find('.text_speaker_namecount').text().replace(".",""); 
+	 			
+	 			console.log(last_id)
+	 			console.log(offset)
+				//On affiche un loader
+				
+				//$('.text_part:last').after(loadingDiv)
+
+	 			$.ajaxSetup({ cache: false });
+	 			
+	 			
+	 			from_step = step+1
+	 			
+	 			if(step + 15 > parseInt(maxpart)){
+	 				to_step = maxpart
+	 				
+	 			} else {
+	 				
+	 				to_step = step + 15
+	 			}
+	 			
+				//On lance la fonction ajax
+				$.ajax({
+					type: "GET",
+					data: {'from':from_step,'to':to_step, '':new Date().getTime()},
+					url: '{% url GetHtmlContent enquete.id texte.id %}' ,
+					dataType:'html',
+					async: false,
+					success: function processAnswer(html) {
+						
+						step += 15
+						
+						$('#verbatim').append(html)
+						
+						//offset = $('.text_part:last').offset();
+						//On remet la valeur à faux car c'est fini
+						load = false;
+						$('#loadingFetchingText').remove()
+						
+						//console.log("ntotal:"+ $('span:regex(class,lem_*)').length);
+						//updateDictionnarySelect();
+						// sidebar height
+						//dime.updateView();
+						oo.sidebar.init();
+						
+					}
+				});
+			}
+	 
+	 
+		});
+	
+	
+	}
+	
 	function getClassDic(tag) {
 		classes = {};
 		$('span:regex(class,'+tag+'*)').each(function() {
@@ -644,7 +781,7 @@
 		
 		//////////// let's put fullscreen as default ? hum not yet
 		//toggleFullScreenMode();
-
+/*
 {% if texte.doctype == 'CSV' %}
 		// Init datatable
 		csvTable = $('#csvTable').dataTable( {
@@ -668,7 +805,7 @@
 				},
 		});
 		$('.dataTables_scrollBody').dragscrollable({acceptPropagatedEvent:true});
-{% endif %}
+{% endif %}*/
 	
 
 	
@@ -862,6 +999,100 @@
 			})
 			
 			
+			$.fn.dataTableExt.oPagination.extStyle = {
+    "fnInit": function (oSettings, nPaging, fnCallbackDraw) {
+        nFirst = $('<span />', { 'class': 'paginate_button first' });
+        nPrevious = $('<span />', { 'class': 'paginate_button previous' });
+        nNext = $('<span />', { 'class': 'paginate_button next' });
+        nLast = $('<span />', { 'class': 'paginate_button last' });
+        nPageTxt = $("<span />", { text: 'Page' });
+        nPageNumBox = $('<input />', { type: 'text', val: 1, 'class': 'pageinate_input_box' });
+        nPageOf = $('<span />', { text: 'of' });
+        nTotalPages = $('<span />', { text: parseInt(oSettings.aoData.length / oSettings._iDisplayLength, 10) });
+  
+        $(nPaging)
+            .append(nFirst)
+            .append(nPrevious)
+            .append(nPageTxt)
+            .append(nPageNumBox)
+            .append(nPageOf)
+            .append(nTotalPages)
+            .append(nNext)
+            .append(nLast);
+  
+        nFirst.click(function () {
+            oSettings.oApi._fnPageChange(oSettings, "first");
+            fnCallbackDraw(oSettings);
+            nPageNumBox.val(parseInt(oSettings._iDisplayEnd / oSettings._iDisplayLength, 10));
+        }).bind('selectstart', function () { return false; });
+  
+        nPrevious.click(function () {
+            oSettings.oApi._fnPageChange(oSettings, "previous");
+            fnCallbackDraw(oSettings);
+            nPageNumBox.val(parseInt(oSettings._iDisplayEnd / oSettings._iDisplayLength, 10));
+        }).bind('selectstart', function () { return false; });
+  
+        nNext.click(function () {
+            oSettings.oApi._fnPageChange(oSettings, "next");
+            fnCallbackDraw(oSettings);
+           nPageNumBox.val(parseInt(oSettings._iDisplayEnd / oSettings._iDisplayLength, 10));
+        }).bind('selectstart', function () { return false; });
+  
+        nLast.click(function () {
+            oSettings.oApi._fnPageChange(oSettings, "last");
+            fnCallbackDraw(oSettings);
+            nPageNumBox.val(parseInt(oSettings._iDisplayEnd / oSettings._iDisplayLength,10 ));
+        }).bind('selectstart', function () { return false; });
+  
+        nPageNumBox.focus(function () {
+            $(this).attr("style", "border-color: #D0B39A");
+        }).blur(function () {
+            $(this).attr("style", "border-color: #C9C9C9");
+        }).change(function () {
+            var pageValue = parseInt($(this).val(), 10);
+            if ((pageValue !== NaN) && pageValue > 0 && pageValue < oSettings.aoData.length) {
+                oSettings._iDisplayStart = $(this).val();
+                fnCallbackDraw(oSettings);
+            }
+        });
+  
+    },
+  
+  
+    "fnUpdate": function (oSettings, fnCallbackDraw) {
+        if (!oSettings.aanFeatures.p) {
+            return;
+        }
+  
+        /* Loop over each instance of the pager */
+        var an = oSettings.aanFeatures.p;
+        for (var i = 0, iLen = an.length; i < iLen; i++) {
+            //var buttons = an[i].getElementsByTagName('span');
+            var buttons = $(an[i]).find('span.paginate_button');
+            if (oSettings._iDisplayStart === 0) {
+                buttons.eq(0).attr("class", "paginate_disabled_first paginate_button");
+                buttons.eq(1).attr("class", "paginate_disabled_previous paginate_button");
+            }
+            else {
+                buttons.eq(0).attr("class", "paginate_enabled_first paginate_button");
+                buttons.eq(1).attr("class", "paginate_enabled_previous paginate_button");
+            }
+  
+            if (oSettings.fnDisplayEnd() == oSettings.fnRecordsDisplay()) {
+                buttons.eq(2).attr("class", "paginate_disabled_next paginate_button");
+                buttons.eq(3).attr("class", "paginate_disabled_last paginate_button");
+            }
+            else {
+                buttons.eq(2).attr("class", "paginate_enabled_next paginate_button");
+                buttons.eq(3).attr("class", "paginate_enabled_last paginate_button");
+            }
+        }
+    }
+};
+			
+			
+			$('#CSVTable').css('visibility', 'hidden')
+			
 			$('#CSVTable').CSVToTable('{% url outside_enquete_document_embed document.id %}', 
 			    { 
 			       loadingImage: '', 
@@ -875,13 +1106,30 @@
 			    	.dataTable({ "bJQueryUI": true,
 			    	//"sScrollY": "500px",
 			    	"sScrollX": "300px",
+			    	"sScrollY": 400,
 			    	"bAutoWidth": false,
 			    	"oTableTools": {
-						"sSwfPath": "{{STATIC_URL}}js/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+						"sSwfPath": "{{MEDIA_URL}}/datatables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
 					},
-					 "sDom": "Rlfrtip"
+					 "sDom": "Rlfrtip",
+					 "sPaginationType": "two_button",
+					 
+					 "oLanguage": {
+               			 "sUrl": "{{MEDIA_URL}}/datatables/js/dataTables.french.txt"
+            	},
+            	 "fnInitComplete": function(oSettings, json) {
+      
+      $('#CSVTable').css('visibility', 'visible')
+      oo.sidebar.init();
+    },
+    
+    "sDom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
+            		
+            		
 			    	
 			    	})
+			    	
+			    //$('#CSVTable').show()
 			    	
 			    
 			});;

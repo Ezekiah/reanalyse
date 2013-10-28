@@ -14,24 +14,8 @@
 	<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.6/mapbox.js'></script>
   	<link href='http://api.tiles.mapbox.com/mapbox.js/v0.6.6/mapbox.css' rel='stylesheet' />
 	<script src="http://d3js.org/d3.v3.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.js"></script>
 	<script src="{{ STATIC_URL }}js/jquery.slimscroll.min.js"></script>
-	
-	<script type="text/javascript">
-		/*
-		$(document).ready(function () {
-		    $( "#tabs" ).tabs({
-				beforeLoad: function( event, ui ) {
-				ui.jqXHR.error(function() {
-				ui.panel.html(
-				"Couldn't load this tab. We'll try to fix this as soon as possible. " +
-				"If this wouldn't be a demo." );
-				});
-				}
-				});
-		    $("#dialog").dialog();
-		});
-		*/
-	</script>
 
 
 {% endblock %}
@@ -125,61 +109,50 @@
 
 		          <!-- Button to trigger modal -->
    &nbsp;&nbsp;&nbsp;
-   
-  
-   	
-   
-   	
-   	 <a id="help-general" href="#modal-help-general" role="button" class="btn_help_modal help-icon" data-toggle="modal">
-   	<em><b> Comment utiliser les outils d'exporation?</b></em>
-			
-			</a>
+
+   	 <a style="display:none;" id="help-general" href="#modal-help-general" role="button" class="btn_help_modal help-icon" data-toggle="modal">
+   	<em><b> Comment utiliser les outils d'exploration?</b></em></a>
 		
 		
 	
-
-		<div class="map content" style="margin-left:0px; margin-top:18px">
-			<a id="help-filtre0" href="#modal-filtre0" role="button" class="btn_help_modal help-icon" data-toggle="modal" 
-    		title="Filtrer selon les étapes du processus de recherche"><em><b></b>Explorer le corpus via le classement analytique des documents</em></a>
+		{% if vizControl.classement %}
 		
-			<br/>
+		<div class="plan_classement">
 			
-			<a id="help-filtre1" href="#modal-filtre1" role="button" class="btn_help_modal help-icon" data-toggle="modal" title="Filtrer selon les étapes du processus de recherche">
-				<em>Filtrer selon les étapes du processus de recherche</em></a>
-			
-			<div><p class='typetitle'>1. Etapes</p></div>
+			<h4 id="help-filtre0" href="#modal-filtre0" data-toggle="modal" style="cursor:pointer">Explorer le corpus via le classement analytique <i title="Explorer le corpus via le classement analytique" class="icon-info-sign" style="font-family: FontAwesome;cursor:pointer"></i></h4>
+			<div><p class='typetitle' id="help-filtre1" href="#modal-filtre1" data-toggle="modal">1. Filtrer selon les étapes du processus de recherche <i  title="Filtrer selon les étapes du processus de recherche" class="icon-info-sign" style="font-family: FontAwesome;"></i></p></div>
 			<div id="phases"></div>
-			
-			<a id="help-filtre2" href="#modal-filtre2" role="button" class="btn_help_modal help-icon" data-toggle="modal" 
-    		title="Filtrer selon le type d'activité"><em>Filtrer selon le type d'activité</em></a>
-			<div><p class='typetitle'>2. Type d'activité</p></div>
+			<div><p class='typetitle' id="help-filtre2" href="#modal-filtre2" data-toggle="modal">2. Filtrer selon le type d'activité <i  title="Filtrer selon le type d'activité" class="icon-info-sign" style="font-family: FontAwesome;"></i></p></div>
 			<div id="categories"></div>
-			
-			<a id="help-filtre3" href="#modal-filtre3" role="button" class="btn_help_modal help-icon" data-toggle="modal"
-			 title="Filtrer selon le type de documents"><em>Filtrer selon le type de documents</em></a>
-			<div><p class='typetitle'>3. Type de documents</p></div>
+			<div><p class='typetitle' id="help-filtre3" href="#modal-filtre3" data-toggle="modal">3. Filtrer selon le type de documents <i  title="Filtrer selon le type de documents" class="icon-info-sign" style="font-family: FontAwesome;cursor:pointer"></i></p></div>
 			<div id="articles"></div>
-
+		</div>
 		
-			<a id="help-filtre4" href="#modal-filtre4" role="button" class="btn_help_modal help-icon" data-toggle="modal" 
-	title="Explorer le corpus via la localisation géographique des documents"><em></em>
-		Explorer le corpus via la localisation géographique des documents
-	</a>   	
+		{%endif%}
+		
+		{% if vizControl.map %}
+		<div class="map content" style="margin-left:0px; margin-top:18px">
+				
+			<h4 id="help-filtre4" href="#modal-filtre4" data-toggle="modal" style="cursor:pointer">Explorer le corpus via la localisation géographique <i title="Explorer le corpus via la localisation géographique" class="icon-info-sign" style="font-family: FontAwesome;cursor:pointer"></i></h4>
+			
+						<p><input id="location" checked="checked" type="checkbox" name="location" value="unclassified"> Afficher les fichiers non localisés</p>
+
 			<div id="map"></div>
 			
-			
-    		
-			<div id="timeline">
-				<input id="location" checked="checked" type="checkbox" name="location" value="unclassified"> Afficher les fichiers non localisés<br>
-				
-				<a id="help-filtre5" href="#modal-filtre5" role="button" class="btn_help_modal help-icon" data-toggle="modal" 
-			
-			title="Explorer le corpus via la répartition temporelle des documents"><em>Explorer le corpus via la répartition temporelle des documents</em></a>
 
-				
-			</div>
-			
 		</div>
+		
+		{%endif%}
+		
+		
+		{% if vizControl.timeline %}
+		
+		<div id="timeline">
+			
+			<h4 id="help-filtre5" href="#modal-filtre5" data-toggle="modal" style="cursor:pointer">Explorer le corpus via la répartition temporelle <i  title="Explorer le corpus via la répartition temporelle des documents" class="icon-info-sign" style="font-family: FontAwesome;cursor:pointer"></i></h4>
+		</div>
+		{%endif%}
+		
 		<div class="clear"></div>
 	</section>
 
@@ -213,9 +186,7 @@
 			{% endif %}
 
 			<div id="reset">
-				<i class="icon-rotate-right" style="font-size:19px;color:#0299CC">
-					
-				</i> Réinitialiser les filtres
+				<i class="icon-rotate-right" style="font-size:16px; color:#0299CC; text-decoration:none; margin-right:5px;"></i>Réinitialiser les filtres
 				</div>
 
 			<!-- <p><i class="icon-repeat icon-white"></i></p> -->
@@ -292,9 +263,8 @@
 			<h3 id="myModalLabel">Explorer le corpus via le classement analytique des documents</h3>
    		</div>
    		 <div class="modal-body">
-   			Les diagrammes en barres ci-dessous présentent la distribution des document selon, respectivement, les 3 niveaux du plan de classement.
+   			Les diagrammes en barres ci-dessous présentent la distribution des documents selon, respectivement, les 3 niveaux du plan de classement.
 			Chaque barre représente une catégorie du plan de classement. En cliquant sur une barre donnée, vous sélectionnez les documents de la catégorie correspondante.
-			Vous pouvez à tout moment revenir à l'étape précédente en cliquant à nouveau sur cette barre.
 			
 			
 			
@@ -454,7 +424,7 @@ Ce filtre peut être actionné de deux manières:</b>
       sélectionnant ainsi les documents correspondants</li>
 				<li>en étirant la bande bleue située sous la ligne, de manière à
        sélectionner la plage chronologique désirée. Cette bande, peut
-         ensuite être déplacer le long de la ligne de temps.</li>
+         ensuite être déplacée le long de la ligne de temps.</li>
 				
 	   		</ul>
    			
@@ -509,34 +479,12 @@ Ce filtre peut être actionné de deux manières:</b>
 	    </div>
     </div>
     
-    <!--
-    <div id="dialog">
-		<div id="tabs">
-		    <ul>
-		        <li><a href="/reanalyse/document/11826/">tab 1</a></li>
-		        <li><a href="#tabs-2">tab 2</a></li>
-		        <li><a href="#tabs-3">tab 3</a></li>
-		    </ul>
-		    
-		    <div id="tabs-1">
-		        test 1
-		    </div>
-		    
-		    <div id="tabs-2">
-		        test 2
-		    </div>
-		    
-		    <div id="tabs-3">
-		        test 3
-		    </div>
-		    
-		</div>
-
-
-	</div>
-	
-	-->
-
+    <script>
+		
+		
+		
+		
+	</script>
 	
 {% endblock %}
 
