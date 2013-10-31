@@ -147,18 +147,18 @@ def getCsvDelimiter(path):
     
 
 def isMetaDocOK(folderPath):
+    
 
     stdPath=folderPath+'_meta/meta_study.csv'
     docPath=folderPath+'_meta/meta_documents.csv'
     spkPath=folderPath+'_meta/meta_speakers.csv'
     codPath=folderPath+'_meta/meta_codes.csv'
     
-    csv_docs = [docPath, spkPath]
+    csv_docs = [docPath, spkPath, stdPath, codPath]
 
     for doc in csv_docs:
         
         if os.path.exists(doc):
-        
             delimiter = getCsvDelimiter(doc)
             
             print(delimiter+doc)
@@ -166,17 +166,17 @@ def isMetaDocOK(folderPath):
             if(not delimiter == ';'):
                 print('wrong delimiters in csv files')
                 
-                return json.dumps({'error':'wrong_delimiter'})
+                #return json.dumps({'error':'wrong_delimiter'})
             
                 #exit('The delimiter of all csv files must be ;')
         else:
             print(doc+'is missing in the zip file.')
             
-            return json.dumps({'error':'document_missing'})
+            #return json.dumps({'error':'document_missing'})
         
             #exit()
             
-        return True   
+    return True   
 
 
     #mandatoryFields = ['*id','*name','*category','*description','*location','*date']
@@ -339,7 +339,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
             
             #try:
             logger.info("%s fields : %s" % (eidstr, row ) ) 
-            if row['id'] != 'descr':
+            if row['id'] != '*descr':
                 
                 print(row['name'])
                 #try:
