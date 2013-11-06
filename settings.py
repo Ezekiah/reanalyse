@@ -60,6 +60,8 @@ HAYSTACK_SOLR_TIMEOUT = 60 * 5
 SOLR_URL = REANALYSEURL+":"+str(SOLR_PORT)
 
 
+SESSION_COOKIE_DOMAIN = '.bequali.fr/app'
+
 ADMINS = (
  	('pierre', STAFF_EMAIL),
 )
@@ -67,14 +69,40 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
+	
+	
 	'default': {
-		'ENGINE': 'django.db.backends.postgresql_psycopg2', 	# Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-		'NAME': READB_NAME,  					# Or path to database file if using sqlite3.
-		'USER': READB_USER,  					# Not used with sqlite3.
-		'PASSWORD': READB_PASS,  				# Not used with sqlite3.
-		'HOST': '',  					# Set to empty string for localhost. Not used with sqlite3.
-		'PORT': '',  					# Set to empty string for default. Not used with sqlite3.
+			'ENGINE': 'django.db.backends.postgresql_psycopg2', 	# Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+			'NAME': READB_NAME,  					# Or path to database file if using sqlite3.
+			'USER': READB_USER,  					# Not used with sqlite3.
+			'PASSWORD': READB_PASS,  				# Not used with sqlite3.
+			'HOST': '',  					# Set to empty string for localhost. Not used with sqlite3.
+			'PORT': '',  					# Set to empty string for default. Not used with sqlite3.
+		},
+	
+	
+	'default2': {
+			'ENGINE': 'django.db.backends.postgresql_psycopg2', 	# Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+			'NAME': 'reanalyse_test',  					# Or path to database file if using sqlite3.
+			'USER': READB_USER,  					# Not used with sqlite3.
+			'PASSWORD': READB_PASS,  				# Not used with sqlite3.
+			'HOST': '',  					# Set to empty string for localhost. Not used with sqlite3.
+			'PORT': '',  					# Set to empty string for default. Not used with sqlite3.
 	},
+
+
+	'default3': {
+                        'ENGINE': 'django.db.backends.mysql',     # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+                        'NAME': 'reanalyse',                                       # Or path to database file if using sqlite3.
+                        'USER': READB_USER,                                     # Not used with sqlite3.
+                        'PASSWORD': 'z75df4%rpo9',                                 # Not used with sqlite3.
+                        'HOST': '',                                     # Set to empty string for localhost. Not used with sqlite3.
+                        'PORT': '',                                     # Set to empty string for default. Not used with sqlite3.
+        },
+
+	
+	
+	
 	# TODO, maybe. 'glue': {
     #    'ENGINE': 'django.db.backends.sqlite3',
     #    'NAME': REANALYSEPROJECTPATH + "sqlite/glue.db"
@@ -95,6 +123,7 @@ DATABASES = {
 #		'HOST': '',  					# Set to empty string for localhost. Not used with sqlite3.
 #		'PORT': '',  					# Set to empty string for default. Not used with sqlite3.
 #	}
+	
 }
 
 # Added to allow multiple database routing
@@ -234,7 +263,10 @@ INSTALLED_APPS = (
 	'captcha',
 	'glue', # content management via json api
 	'outside', # currently there is no model
-	'south',
+	#'south',
+	'fixture_magic',
+	'django_extensions'
+
 	# Uncomment the next line to enable admin documentation:
 	# 'django.contrib.admindocs',
 )
