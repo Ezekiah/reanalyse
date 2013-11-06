@@ -60,7 +60,7 @@ HAYSTACK_SOLR_TIMEOUT = 60 * 5
 SOLR_URL = REANALYSEURL+":"+str(SOLR_PORT)
 
 
-SESSION_COOKIE_DOMAIN = '.bequali.fr/app'
+SESSION_COOKIE_DOMAIN = 'www.bequali.fr/app'
 
 ADMINS = (
  	('pierre', STAFF_EMAIL),
@@ -211,7 +211,7 @@ MIDDLEWARE_CLASSES = (
 
 
 SESSION_ENGINE = (
-				"django.contrib.sessions.backends.cached_db"
+				"django.contrib.sessions.backends.db"
 )
 
 
