@@ -53,6 +53,7 @@ from haystack.forms import *
 from haystack.query import *
 
 import zipfile, zlib
+from django.views.decorators.cache import never_cache
 
 
 
@@ -594,7 +595,7 @@ def legal( request ):
 	return render_to_response(  "%s/legal.html" % data['template'], RequestContext(request, data ) )
 
 
-
+@never_cache
 def login_view( request ):
 	
 	if request.user.is_authenticated():
@@ -790,9 +791,12 @@ def confirm( request, token, user_id, action ):
 		
 
 
+
+@never_cache
 def logout_view( request ):
 	logout( request )
-	return redirect( 'outside_index' )
+	return redirect( reverse('outside_index') )
+
 
 def studies( request ):
 	data = shared_context( request, tags=[ "studies" ] )
