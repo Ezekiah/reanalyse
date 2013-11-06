@@ -245,9 +245,7 @@ INSTALLED_APPS = (
 	'captcha',
 	'glue', # content management via json api
 	'outside', # currently there is no model
-	#'south',
-	'fixture_magic',
-	'django_extensions'
+
 
 	# Uncomment the next line to enable admin documentation:
 	# 'django.contrib.admindocs',
