@@ -79,26 +79,6 @@ DATABASES = {
 		},
 	
 	
-	'default2': {
-			'ENGINE': 'django.db.backends.postgresql_psycopg2', 	# Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-			'NAME': 'reanalyse_test',  					# Or path to database file if using sqlite3.
-			'USER': READB_USER,  					# Not used with sqlite3.
-			'PASSWORD': READB_PASS,  				# Not used with sqlite3.
-			'HOST': '',  					# Set to empty string for localhost. Not used with sqlite3.
-			'PORT': '',  					# Set to empty string for default. Not used with sqlite3.
-	},
-
-
-	'default3': {
-                        'ENGINE': 'django.db.backends.mysql',     # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-                        'NAME': 'reanalyse',                                       # Or path to database file if using sqlite3.
-                        'USER': READB_USER,                                     # Not used with sqlite3.
-                        'PASSWORD': 'z75df4%rpo9',                                 # Not used with sqlite3.
-                        'HOST': '',                                     # Set to empty string for localhost. Not used with sqlite3.
-                        'PORT': '',                                     # Set to empty string for default. Not used with sqlite3.
-        },
-
-	
 	
 	
 	# TODO, maybe. 'glue': {
