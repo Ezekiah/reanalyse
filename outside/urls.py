@@ -8,7 +8,10 @@ urlpatterns = patterns('',
 	url(r'^index/$','outside.views.index', name='outside_index'),
 	url(r'^news/$','outside.views.news', name='outside_news'),
 	url(r'^login/$','outside.views.login_view', name='outside_login'),
-	url(r'^logout/$','outside.views.logout_view', name='outside_logout'),
+	
+	url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '../'}, name='outside_logout'),
+	
+	#url(r'^logout/$','outside.views.logout_view', name='outside_logout'),
 	
 	url(r'^changePassword/$','outside.views.change_password', name='outside_change_password'),
 	url(r'^reinitializePassword/$','outside.views.reinitialize_password', name='outside_reinitialize_password'),
