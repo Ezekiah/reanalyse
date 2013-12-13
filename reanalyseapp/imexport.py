@@ -4,6 +4,9 @@ import settings
 import os,re,mimetypes
 import json
 
+from update import *
+
+
 # for time measurement
 from time import time
 from datetime import timedelta
@@ -139,6 +142,9 @@ def doFiestaToEnquete(e):
     e.status='0'
     e.save()
     logger.info("["+str(e.id)+"] IMPORT PROCESS DONE SUCCESSFULLY !")
+    
+    
+    
 ###########################################################################
 
 
@@ -327,7 +333,6 @@ def importEnqueteUsingMeta(upPath,folderPath):
         #mandatoryFields = ['id','name','category','description','location','date']
         logger.info(eidstr+"=========== PARSING META_DOCUMENTS.CSV")
         
-        logger.info(eidstr+"=========== PARSING META_DOCUMENTS.CSV")
         ###### Parsing Documents
         doc = bag.csv2.UnicodeDictReader(open(docPath),delimiter=getCsvDelimiter(docPath))
         
@@ -336,9 +341,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
         i = 0
         
         for counter, row in enumerate(doc):
-            
-            
-            
+
             #try:
             logger.info("%s fields : %s" % (eidstr, row ) ) 
             if row['id'] != 'descr':
@@ -356,16 +359,16 @@ def importEnqueteUsingMeta(upPath,folderPath):
                 doc_description =     ''#row['description']
                 doc_location =         row['location']
                 try:
-                    doc_location_geo =     row['geogloc']
+                    doc_location_geo =     row['locationgeo']
                 except KeyError, e:
                     logger.info( "%s KeyError warning, location_geo field not found or invalid: %s" % (eidstr,e) )
                     doc_location_geo = ""
 
                 # document date
                 try:
-                    doc_date = datetime.datetime.strptime(row['date'], "%Y_%m_%d") #"31-12-12"
+                    doc_date = datetime.datetime.strptime(row['date'], "%Y-%m-%d") #"31-12-12"
                 except:
-                    logger.info("%s line %s EXCEPT malformed or empty date : %s, supported format 'YYYY_MM_DD'" % ( eidstr, counter, row['date']))
+                    logger.info("%s line %s EXCEPT malformed or empty date : %s, supported format 'YYYY-MM-DD'" % ( eidstr, counter, row['date']))
                     doc_date = datetime.datetime.today()
 
 
@@ -487,6 +490,15 @@ def importEnqueteUsingMeta(upPath,folderPath):
         
     newEnquete.status='5'
     newEnquete.save()
+    
+    
+    #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
+    csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
+    update( newEnquete.texte_set.all(), newEnquete, csvdict )
+    
+    
+    
+    
     return newEnquete
 ###########################################################################
 
