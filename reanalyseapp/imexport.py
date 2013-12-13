@@ -4,7 +4,7 @@ import settings
 import os,re,mimetypes
 import json
 
-from update import *
+from reanalyseapp.update import *
 
 
 # for time measurement

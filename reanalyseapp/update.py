@@ -37,11 +37,17 @@ from reanalyseapp.models import *
 
 from glue.models import Pin
 
+import logging
+logger = logging.getLogger('apps')
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+nullhandler = logger.addHandler(NullHandler())
+
 
 def update( textes, enquete, csvdict ):
 
-    print "        %s documents found in enquete: \"%s\", id:%s" % ( textes.count(), enquete.name, enquete.id )
-    print
+    logger.info( "        %s documents found in enquete: \"%s\", id:%s" % ( textes.count(), enquete.name, enquete.id ))
     
     
     #Create vizControl entry
@@ -49,7 +55,7 @@ def update( textes, enquete, csvdict ):
     try:
         t = VizControl.objects.get( enquete=enquete )
     except VizControl.DoesNotExist, e:
-        print  "            creating vizControl..."
+        logger.info(  "            creating vizControl...")
         viz = VizControl( enquete=enquete, timeline=True, classement=True, map=True )
         viz.save()
     
@@ -60,10 +66,10 @@ def update( textes, enquete, csvdict ):
         
         
         if counter == 0:
-            print "        keys: %s" % row.keys()
+            logger.info( "        keys: %s" % row.keys())
             # normally, the second meta_documents csv file line is a field description header.
             continue
-        print "        %s." % counter
+        logger.info( "        %s." % counter)
         
        
         try:
@@ -87,52 +93,52 @@ def update( textes, enquete, csvdict ):
                 dateFormat = '%y'
                 #row['date'] = row['date'].replace('00', '').replace(sep, '')
                 
-                print(row['date'])
+                logger.info((row['date']))
             else:
                 dateFormat = '%d'+sep+'%m'+sep+'%y'
             
             
             
-            #print(row['*date'])
+            #logger.info((row['*date']))
             date = row['date'].replace(sep, '-')#datetime.datetime.strptime(row['*date'], dateFormat) #"31-12-12"
             
             #date = datetime.datetime.strptime(row['*date'], '%d/%m/%y').strftime(dateFormat)       
            
         except KeyError, e:
-            print "            Field format is not valid: %s " % ( e )
+            logger.info( "            Field format is not valid: %s " % ( e ))
             break
 
-        # print row['*name']doc_name =             row['*name']
+        # logger.info( row['*name']doc_name =             row['*name'])
         
         try:
             texte = Texte.objects.get( enquete=enquete, name=row['name'], locationpath__regex=( ".?%s" % os.path.basename( texte_url ) ) )
 
         except Texte.DoesNotExist, e:
-            print "            No texte found with : \"%s\", %s " % ( texte_name, e )
+            logger.info( "            No texte found with : \"%s\", %s " % ( texte_name, e ))
             
             foo=raw_input('\n            Skip this line and go on ? [ Y / N ] : ')
             
             if foo.upper() == 'N':
-                print "            Script stopped !"
+                logger.info( "            Script stopped !")
                 break
             continue
         except Texte.MultipleObjectsReturned, e:
-            print "            More than one texte found with : \"%s\", %s, %s " % ( texte_name, os.path.basename( texte_url ), e )
+            logger.info( "            More than one texte found with : \"%s\", %s, %s " % ( texte_name, os.path.basename( texte_url ), e ))
             foo=raw_input('\n            Skip this line and go on ? [ Y / N ] : ')
             
             if foo.upper() == 'N':
-                print "            Script stopped !"
+                logger.info( "            Script stopped !")
                 break
             
-        print "            %s \"%s\": %s" % ( texte.id, texte_name, locationgeo )
+        logger.info( "            %s \"%s\": %s" % ( texte.id, texte_name, locationgeo ))
         
         # get or save tag
-        print  "            %s \"%s\": %s" % ( texte.id, texte_name, article )
+        logger.info(  "            %s \"%s\": %s" % ( texte.id, texte_name, article ))
 
         try:
             t = Tag.objects.get( type=Tag.ARTICLE, slug=article )
         except Tag.DoesNotExist, e:
-            print  "            %s \"%s\": creating tag [%s:%s]" % ( texte.id, texte_name, article, Tag.ARTICLE )
+            logger.info(  "            %s \"%s\": creating tag [%s:%s]" % ( texte.id, texte_name, article, Tag.ARTICLE ))
             t = Tag( type=Tag.ARTICLE, slug=article, name=article)
             t.save()
 
