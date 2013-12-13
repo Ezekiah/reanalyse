@@ -36,7 +36,14 @@
 
 {% block page %}
 
-
+<style>
+	.study-unactivated{
+		
+		background:#F7F7AB;
+		
+	}
+	
+</style>
 
 
 <a id="enquetes"></a>
@@ -44,7 +51,7 @@
 	
 	{% for s in enquetes %}
 	
-		<div class="enquete big item hover"
+		<div class="enquete big item hover {% if request.user.is_superuser and not s.status == '0' %}study-unactivated{%endif%}"
 			data-enquete-id="{{ s.id }}"
 			data-enquete-href="{% url outside_enquete s.id %}"
 			data-enquiry-href="{% url outside_enquiry s.id %}"

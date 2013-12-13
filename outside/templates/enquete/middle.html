@@ -21,6 +21,7 @@
 						
 						{% if user.is_authenticated %}
 						<li style="float:right;">
+							{{user.username}}
 							<a href="{% url outside_logout %}" rel="tooltip" title="{% trans "logout" %} {{ user.username }}" data-tooltip-placement="bottom">{% trans "logout" %} <i class="icon-signout"></i>
 							</a>
 						</li>

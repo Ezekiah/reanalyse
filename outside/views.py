@@ -56,6 +56,9 @@ import zipfile, zlib
 from django.views.decorators.cache import never_cache
 
 
+from glue.misc import Epoxy, API_EXCEPTION_FORMERRORS, API_EXCEPTION_INTEGRITY, API_EXCEPTION_OSERROR, API_EXCEPTION_DOESNOTEXIST, API_EXCEPTION_EMPTY
+
+
 
 # settings.py
 LOGIN_URL = '/%s/login/' % settings.ROOT_DIRECTORY_NAME
@@ -545,12 +548,23 @@ def enquiries( request ):
 
 	return render_to_response('enquete/enquiries.html', RequestContext(request, data ) )
 
-
+@never_cache
 def enquetes( request ):
+	
+	response = Epoxy( request )
+	
 	data = shared_context( request, tags=[ "enquetes" ] )
-	data['enquetes'] = Enquete.objects.all() 
+	
+	#filter studies, show only activated for public and all for superuser
+	if request.user.is_superuser:
+		data['enquetes'] = Enquete.objects.all()
+	else:
+		data['enquetes'] = Enquete.objects.filter(status="0")
+	
+	
 	data['page'] = get_object_or_404(Page, slug="enquetes", language=data['language'] )
 	data['pins'] = Pin.objects.filter( page__slug="enquetes", language=data['language'], parent=None)
+	
 	
 	return render_to_response("enquete/enquetes.html", RequestContext(request, data ) )
 

@@ -7,7 +7,10 @@ import sys, os, csv, re, traceback
 from optparse import OptionParser
 import bag.csv2
 import xml.etree.ElementTree as ET
-import os
+import os,re,mimetypes
+from django.conf import settings as django_settings
+
+from django.template.defaultfilters import slugify
 
 
 # get path of the django project
@@ -30,8 +33,10 @@ from datetime import datetime
 
 from reanalyseapp.views import *
 
-
 from reanalyseapp.models import *
+
+from glue.models import Pin
+
 
 def update( textes, enquete, csvdict ):
 
@@ -185,19 +190,27 @@ def testTEIparse(texte_id):
     
 
 def testEnqueteImport(foldName):
-   folname = foldName    
-   upPath = settings.REANALYSEUPLOADPATH+folname+"/"
-   enqueterootpath='' 
-   for f in os.listdir(upPath+"extracted/"):
-       if os.path.exists(upPath+"extracted/"+f+"/_meta/"):
-           enqueterootpath = upPath+"extracted/"+f+"/"
+    folname = foldName    
+    upPath = settings.REANALYSEUPLOADPATH+folname+"/"
+    enqueterootpath='' 
+    
+    for f in os.listdir(upPath+"extracted/"):
+        if os.path.exists(upPath+"extracted/"+f+"/_meta/"):
+            enqueterootpath = upPath+"extracted/"+f+"/"
    
-   e = importEnqueteUsingMeta(upPath,enqueterootpath)
    
-   print(e)
+    if isMetaDocOK(enqueterootpath):
+       e = importEnqueteUsingMeta(upPath,enqueterootpath)
+       doFiestaToEnquete(e)
+    
+    else:
+        exit()
+
+   
+
    
    #if(e != False):
-   doFiestaToEnquete(e)
+   
    #else:
     #    exit()
 
@@ -275,41 +288,6 @@ def reloadSpeakers(enquete_id, spkPath):
     else:
         print("=========== PARSING: no spk meta found")
            
-#
-#CheckMetaDocuments
-#Check if every file exists in MetaDocuments
-#return False with error dictionnary or True
-#
-def isMetaDocOK(upload_path, enquete_path):
-    
-    from imexport import importEnqueteUsingMeta
-    
-    if os.path.exists(enquete_path):
-        #mandatoryFields = ['*id','*name','*category','*description','*location','*date']
-        print("=========== PARSING META_DOCUMENTS.CSV TO CHECK IF A FILE IS MISSING IF TRUE IMPORT IS CANCELLED")
-        ###### Parsing Documents
-        doc = csv.DictReader(open(enquete_path+'_meta/meta_documents.csv'),delimiter='\t')
-        
-        error = False
-        error_dict = {}
-        
-        for counter, row in enumerate(doc):
-            if row['*id']!='descr':
-                file_location = upload_path+row['*file']
-                try:
-                    open(file_location)                        
-                except IOError, e:
-                    if(e.args[0] == 2):#no such file or directory
-                        error = True
-                        error_dict.update({file_location:e.args[1]})
-			print file_location
-
-        if(error is True):
-            return {'status':False, 'error_dict':error_dict}
-        else:
-            return True
-
-
 
 
 def commit_enquete( enquete_id ):
@@ -400,6 +378,17 @@ def main( argv ):
         print(options.func)
         # reparseAllteis file of an enquete
         return deleteSpeakers( options.enquete_id )
+    
+    if options.func == "deserialize_data" :
+        print(options.func)
+        # reparseAllteis file of an enquete
+        return deserialize_data( options.csvfile )
+    
+    if options.func == "importEnqueteSurEnquete" :
+        print(options.func)
+        # reparseAllteis file of an enquete
+        return importEnqueteSurEnquete( options.csvfile, options.enquete_id )
+    
 
     if options.enquete_id is None:
         error("enquete_id arg not found!", parser)
@@ -439,224 +428,179 @@ def main( argv ):
 
 
 
-def exportEnquiry(enquiry_id, enquete_id):
-    enquiry = Enquiry.objects.filter(enquiry_id)
-    pins = enquiry.pins.all()
-    tags = enquiry.tags.all()
-    
-    #serialize
-    
-
-def exportEnquete(enquete_id, filetype="xml"):
-    filetype='xml'
-    #os.system('rm /var/opt/reanalyse/backup_data/backup_enquete.xml;touch backup_enquete.%s' % filetype)
-    
-    
-    print('enquetes')
-    enquetes = Enquete.objects.filter(id=enquete_id)
-
-    enquete = Enquete.objects.get(id=enquete_id)
-
-    
-    
-    print('enquiries')
-    enquiries = Enquiry.objects.filter(enquete = enquete)
-    
-    
-    enquiriesPins = []
-    enquiriesTags = []
-    for enquiry in enquiries:
-        enquiriesPins += enquiry.pins.all()
-        enquiriesTags += enquiry.tags.all()
-    
-    enquiriesPinsGeo = []
-    for enquiryPin in enquiriesPins:
-        enquiriesPinsGeo += enquiryPin.geos.all()
-        
-    print('tags')
-    tags = enquete.tags.all()
-    
-    textes = Texte.objects.filter(enquete = enquete)
-    
-    print('textesTags')
-    textesTags = []
-    for texte in textes:
-        textesTags += texte.tags.all()
-    
-    
-    print('attributes')
-    attributeTypes = AttributeType.objects.filter(enquete = enquete)
-    attributes = Attribute.objects.filter(enquete = enquete)
-    
-    print('speakers')
-    speakers = Speaker.objects.filter(enquete = enquete)
-    
-    print('wordEntitySpeakers,speakerTextes,speakerAttributes')
-    wordEntitySpeakers = []
-    speakerTextes = []
-    speakerAttributes = []
-    for speaker in speakers:
-        speakerTextes += speaker.textes.all()
-        wordEntitySpeakers += WordEntitySpeaker.objects.filter(speaker=speaker.id)
-        speakerAttributes += speaker.attributes.all()
-    
-    
-    print('wordEntitySpeakerTextes')
-    wordEntitySpeakerTextes = []
-    for wordEntitySpeaker in wordEntitySpeakers:
-        wordEntitySpeakerTextes += wordEntitySpeaker.textes.all()
+def importEnqueteSurEnquete(eseXmlPath, enquete_id):
    
+    e = Enquete.objects.get(id=enquete_id)
     
-    print('speakersets')
-    speakerSets = SpeakerSet.objects.filter(enquete = enquete)
-    speakerSetSpeakers = []
-    for speakerSet in speakerSets:
-        speakerSetSpeakers += speakerSet.speakers.all()
+    tree = etree.parse(eseXmlPath)
+    root = tree.getroot()
+    
+    baseEseXmlFolder = '/'.join(eseXmlPath.split('/')[:-1])+'/'
+    
+    
+    fileName = os.path.basename(os.path.normpath(eseXmlPath))
+    folderName = os.path.basename(os.path.normpath(baseEseXmlFolder))
+    
+    
+    out = {}
+    out['audiopaths'] = {}
+    apacount = 0
+    
+    
+    for lan in ['fr','en']:
+        res = {}
         
-    
-    print('codes')
-    codes = Code.objects.filter(enquete = enquete)
-    codeTextes = []
-    for code in codes:
-        codeTextes += code.textes.all()
-    
-    print('sentence')
-    sentence = Sentence.objects.filter(enquete = enquete)
-    wordEntities = WordEntity.objects.filter(enquete = enquete)
-    wordEntityTextes = []
-    for wordEntity in wordEntities:
-        wordEntityTextes += wordEntity.textes.all()
-    
-    
-    print('word')
-    word = Word.objects.filter(enquete = enquete)
-    print('ngram')
-    ngram = Ngram.objects.filter(enquete = enquete)
-    print('ngramspeaker')
-    ngramSpeaker = NgramSpeaker.objects.filter(enquete = enquete)
-    
-    print('visualizations')
-    visualizations = Visualization.objects.filter(enquete = enquete)
-    vizTextes = []
-    vizSpeakers = []
-    for visualization in visualizations:
-        vizTextes += visualization.textes.all()
-        vizSpeakers += visualization.textes.all()
-    
-    
-    print('create big object')
-    
-    #all_objects = list(tags)
-    
-    all_objects = list(enquetes)
-    
-    
-    all_objects += list(enquiries)
-    all_objects += list(senquiriesPins)
-    all_objects += list(enquiriesPinsGeo)
-    all_objects += list(enquiriesTags)
-    
-    
-    all_objects += list(textes)
-    #all_objects += list(textesTags)
-    
-    all_objects += list(codes)
-    all_objects += list(codeTextes)
-    
-    
-    all_objects += list(attributes)
-    all_objects += list(attributeTypes)
-    
-    all_objects += list(speakers)
-    all_objects += list(speakerTextes)
-    all_objects += list(speakerAttributes)
-    
-    all_objects += list(speakerSets)
-    all_objects += list(speakerSetSpeakers)
-    
-    
-    all_objects += list(visualizations)
-    all_objects += list(vizSpeakers)
-    all_objects += list(vizTextes)
-    
-    all_objects += list(ngram)
-    all_objects += list(ngramSpeaker)
-    
-   
-    
-    print('serialize big object')
-    data = serializers.serialize('xml', all_objects, use_natural_keys=False)
-    
-    print('save file')
-    with open("/var/opt/reanalyse/backup_data/backup_enquete.xml", "w") as f:
-        f.write(data)
-       
-    root = ET.fromstring(data)
-    
-    api_results = root.findall('.//object')
-    
-    for object in api_results:
+        # Fetching report
+        rep = root.findall('Report')[0]
+        res['reportpath'] = baseEseXmlFolder + rep.find('file[@lang="'+lan+'"]').attrib['location']
+        
+        
+        #Create the inquiry
+        
+        slug = slugify( root.find('./title[@lang="'+lan+'"]').text)
+        title = root.find('./title[@lang="'+lan+'"]').text
+        content = root.find('./content[@lang="'+lan+'"]').text
+        
+        authors = root.findall('./authors/author')
+        
+
+        try:
+            
+            enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())
+            
+        except Enquiry.DoesNotExist:
+            enquiry = Enquiry.objects.create(slug=slug, 
+                                  title=title, 
+                                  content=content, 
+                                  language=lan.upper(), 
+                                  enquete=e)
+                                  
+        
+        
+        
+        place = root.find('./interview/place[@lang="'+lan+'"]').text
+        date = root.find('./interview/date[@lang="'+lan+'"]').text
+        researcher = root.find('./interview/researcher').text
+        
+        #Ajouter les TAGS
+        for author in authors:
+            try:
+                tag = Tag.objects.get(type="AU", name=author.text)
+                enquiry.tags.add(tag)
+            except Tag.DoesNotExist, e:
+                tag = Tag.objects.create(type="AU", name=author.text,slug=author.text)
+                
         
         try:
-            object.attrib["pk"] = '57'+object.attrib["pk"]
-            #print object.attrib["pk"]
-        except:
-            pass
-        
-    tree = ET.ElementTree(root)
-    with open("/var/opt/reanalyse/backup_data/backup_enquete.xml", "w") as f:
-        tree.write(f)
-    
-        
-    all_objects = list(wordEntities)
-    all_objects += list(wordEntityTextes)
-    
-    all_objects += list(word)
-    
-
-    all_objects += list(sentence)
-    
-    
-    all_objects += list(wordEntitySpeakers)
-    all_objects += list(wordEntitySpeakerTextes)
-    
-    
-    print('serialize big object')
-    data = serializers.serialize('xml', all_objects, use_natural_keys=False)
-    
-    
-    print('save file')
-    with open("/var/opt/reanalyse/backup_data/backup_enquete-special.xml", "w") as f:
-        f.write(data)
-
-
-    
-    root = ET.fromstring(data)
-    
-    api_results = root.findall('.//object')
-    
-    for object in api_results:
+            tag = Tag.objects.get(type="Pl", name=place)
+            enquiry.tags.add(tag)
+        except Tag.DoesNotExist, e:
+            tag = Tag.objects.create(type="Pl", name=place, slug=place)
+            
         
         try:
-            object.attrib["pk"] = '57'+object.attrib["pk"]
-        except:
-            pass
+            tag = Tag.objects.get(type="Da", name=date, slug=date)
+            enquiry.tags.add(tag)
+        except Tag.DoesNotExist, e:
+            tag = Tag.objects.create(type="Da", name=date, slug=date)
         
-    tree = ET.ElementTree(root)
-    with open("/var/opt/reanalyse/backup_data/backup_enquete-special.xml", "w") as f:
-        tree.write(f)
+        
+        try:
+            tag = Tag.objects.get(type="Rs", name=researcher, slug=researcher)
+            enquiry.tags.add(tag)
+        except Tag.DoesNotExist, e:
+            tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
+        
+                           
+        # Fetching chapters
+        thechapters = []
+        for chapter in root.findall('Chapters/Chapter'):
+            chapt = {}
+            chapt['name'] = chapter.find('./title[@lang="'+lan+'"]').text
+            chapt['html'] = chapter.find('./text[@lang="'+lan+'"]').text
+            
+            #create pins for the chapter
+            
+            try:
+                chapter_pin = Pin.objects.get(title=chapt['name'], slug=slugify( chapt['name']))
+                
+            except Pin.DoesNotExist:
+            
+                chapter_pin = Pin.objects.create( title=chapt['name'],
+                           abstract=chapter.find('./abstract[@lang="'+lan+'"]').text,
+                           language=lan.upper(), 
+                           slug=slugify( chapt['name'] ), 
+                           mimetype='',
+                           content=chapt['html'],
+                           local='' 
+                           )
+            
+            enquiry.pins.add( chapter_pin )
+            enquiry.save()
+            
+            
+            thesubchapters = []
+            for subChapter in chapter.findall('SubChapter'):
+                #try:
+                subchapt = {}
+                aud = subChapter.find('audio[@lang="'+lan+'"]')
+                subchapt['name']         = aud.attrib['name']
+                subchapt['audiopath']     = aud.attrib['location']
+                location = aud.attrib['location']
+                
+                patharchive = baseEseXmlFolder+subchapt['audiopath']              
+                
+                
+                if os.path.exists( patharchive ):
+                    subchapt['audiopath'] = patharchive
+                else:
+                    pathserver = settings.REANALYSEESE_FILES+'/'+e.ddi_id+'/'+ subchapt['audiopath']
+                    if os.path.exists( pathserver ):
+                        subchapt['audiopath'] = pathserver
+                    else:
+                        logger.info("["+str(e.id)+"] EXCEPT no audio file: "+patharchive)
+                        logger.info("["+str(e.id)+"] EXCEPT no audio file: "+pathserver)
+                    
+                # rather store an id referencing real path in out['audiopaths']
+                out['audiopaths'][str(apacount)] = subchapt['audiopath']
+                subchapt['audioid'] = str(apacount)
+                apacount+=1
+                thesubchapters.append(subchapt)
+                
+                pin_mimetype = mimetypes.guess_type( subchapt['audiopath'])[0]
+                
+                
+                try:
+                    sub_pin = Pin.objects.get(title=subchapt['name'], slug=slugify( subchapt['name']))
+                    print(sub_pin)
+                except Pin.DoesNotExist:
+                      #create audio subPins
+                    sub_pin = Pin.objects.create( title=subchapt['name'],
+                           abstract="",
+                           language=lan.upper(), 
+                           slug=slugify( subchapt['name'] ), 
+                           mimetype=pin_mimetype,
+                           content="",
+                           local=django_settings.MEDIA_URL+'bequali_ese_files/'+folderName+'/'+os.path.normpath(location),
+                           parent=chapter_pin
+                           )
+                
+                
+            chapt['subchapters'] = thesubchapters
+            thechapters.append(chapt)
+        res['chapters'] = thechapters
+        out[lan] = res
+        
+        
+        
+    return out
     
-    
-    
-    
-    print('change location file path')
-    os.system('perl -pi -e "s/\/var\/opt\/reanalyse/\/datas\/www\/app/" /var/opt/reanalyse/backup_data/backup_enquete.%s;sed -i "s/\/var\/opt\/reanalyse/\/datas\/www\/app/g" /var/opt/reanalyse/backup_data/backup_enquete.%s' % (filetype, filetype))
-    
-    """
-    print('Zip enquete')
-    #zip enquete path
-    os.system("tar -cvf --no-recursion /var/opt/reanalyse/backup_data/enquete.tar %s " % (enquete.uploadpath))
-    """
+    pass
+
+
+
+
+
 
 def parseAllTeis(enquete_id):
     
@@ -666,8 +610,22 @@ def parseAllTeis(enquete_id):
         
         if not t.id == 14825:
             parseXmlDocument(t)
+
+
+def deserialize_data(file):
     
+    #print open(file).read().encode('utf-8')
     
+    for deserialized_object in serializers.deserialize("xml", open(file).read().encode('utf-8')):
+        print(deserialized_object)
+        
+        """
+        if object_should_be_saved(deserialized_object):
+            try:
+                deserialized_object.save()
+            except Exception, e:
+                print(e)
+        """
 def testDownload(enquete_id):
     import zipfile, zlib
     

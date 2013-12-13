@@ -10,6 +10,8 @@ solrdataindex/*
 settingsprivate.py
 apache/django.wsgi
 apache/qualiexplorer.conf
+static/download
+solr/*
 solr/work/Jetty_0_0_0_0_8985_solr.war__solr__.683e1v/
 solr/work/Jetty_0_0_0_0_8986_solr.war__solr__g5mqe6/
 ~             

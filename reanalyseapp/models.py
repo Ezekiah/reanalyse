@@ -489,20 +489,20 @@ class NgramSpeaker(models.Model):
 ############################################################################################
 def parseXmlDocument(texte):
 	
-	#print('parseXmlDocument')
+	#logger.info('parseXmlDocument')
 	
 	e = texte.enquete
 	
 	# WE ERASE ALL OBJECTS if there is (will erase Sentences & Words too)
 	texte.sentence_set.all().delete()
 	
-	print('Parsing '+texte.locationpath)
+	logger.info('Parsing '+texte.locationpath)
 	
 	try:
 		tree = etree.parse(texte.locationpath)
 	except Exception, e:
 		
-		print('error sur '+texte.locationpath+'   '+str(e))
+		logger.info('error sur '+texte.locationpath+'   '+str(e))
 		return
 	
 	root = tree.getroot()
@@ -540,7 +540,7 @@ def parseXmlDocument(texte):
 	
 	######################### XML TXM		## Built using Formatted .txt > TXM
 	if roottag=='Trans':
-		print("["+str(e.id)+"] parsing text "+str(texte.id)+" with type: TXM ...")
+		logger.info("["+str(e.id)+"] parsing text "+str(texte.id)+" with type: TXM ...")
 		persons = root.findall('Speakers/Speaker')
 		for n,p in enumerate(persons):
 			speakersArray.append( p.attrib['id'] )
@@ -550,7 +550,7 @@ def parseXmlDocument(texte):
 	
 	######################### XML TEI		## Built using: Formatted .txt > Exmaralda .exb > TEI Drop
 	elif roottag==XMLTEINMS+'TEI':
-		print("["+str(e.id)+"] parsing text "+str(texte.id)+" with type: Exmaralda TEI ...")
+		logger.info("["+str(e.id)+"] parsing text "+str(texte.id)+" with type: Exmaralda TEI ...")
 		persons = root.findall(XMLTEINMS+'teiHeader/'+XMLTEINMS+'profileDesc/'+XMLTEINMS+'particDesc/'+XMLTEINMS+'person')
 		# putting speakers ddi_id from TEI header in a dict to access them (if the <who> tags contains #references to that header)
 		speakersDDIDict={}
@@ -570,7 +570,7 @@ def parseXmlDocument(texte):
 	
 	#########################
 	else:
-		print("PB:XML file not parsed cause neither <Trans> or <TEI> tag was found")
+		logger.info("PB:XML file not parsed cause neither <Trans> or <TEI> tag was found")
 ####################################################################
 
 
@@ -582,7 +582,7 @@ def parseXmlDocument(texte):
 # NB: we build long sentences without looking at punctuation
 def parseTXMDivs(texte,nodes,speakersArray):
 	
-	#print('parseTXMDivs')
+	#logger.info('parseTXMDivs')
 	
 	e=texte.enquete
 	speakerContentDict = dict((theid,'') for theid in speakersArray)
@@ -617,7 +617,7 @@ def parseTXMDivs(texte,nodes,speakersArray):
 		# gets % of "loading completeness"
 		compl = int(curTime*100/len(nodes))
 		 # texte.save() is taking a lot of memory !!
-		# MONITORING : print("MEMORY:"+str(psutil.phymem_usage()[3]))
+		# MONITORING : logger.info("MEMORY:"+str(psutil.phymem_usage()[3]))
 		if compl!=texte.statuscomplete and compl%5==0:
 			texte.statuscomplete = compl
 			texte.save()
@@ -632,14 +632,14 @@ def parseTXMDivs(texte,nodes,speakersArray):
 			s.contenttxt += speakerContentDict[s.ddi_id] + '\n'
 			s.save()
 		except:
-			#print("location : "+texte.locationpath)
-			#print("ddiid : "+ddiid)
+			#logger.info("location : "+texte.locationpath)
+			#logger.info("ddiid : "+ddiid)
 			pass
 		
 ################################################
 def parseTXMWords(sentence,words,N):
 	
-	#print('parseTXMWords')
+	#logger.info('parseTXMWords')
 	
 	# for the moment only looking at normal words+punctuation
 	allSentenceTxt=""
@@ -697,7 +697,7 @@ def splitElemListByTimeAnchor(elemList,initTime):
 	yield [anchorTime, elemList[j:k+1]]
 ######################################################################## manage list of all <div>
 def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
-	#print('parseTEIDivs')
+	#logger.info('parseTEIDivs')
 	e = texte.enquete
 	# init speakerContentDict which will store all text for one speaker
 	speakerContentDict = dict((theid,'') for theid in speakersArray)
@@ -719,7 +719,7 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 				try:
 					ddiid = speakersDDIDict[ddiid]
 				except:
-					print("["+str(texte.enquete.id)+"] EXCEPT pb parsing TEI xml ids: texteid="+str(texte.id))
+					logger.info("["+str(texte.enquete.id)+"] EXCEPT pb parsing TEI xml ids: texteid="+str(texte.id))
 			# DEPRECATED: theCodeType,isnew = CodeType.objects.get_or_create(enquete=texte.enquete,name='speaker')
 			theSpeaker,isnew = Speaker.objects.get_or_create(enquete=texte.enquete,ddi_id=ddiid)
 			theSpeaker.textes.add(texte)
@@ -738,15 +738,15 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 				speakerContentDict[ddiid] = speakerContentDict[ddiid] + curtxt + '\n'
 			
 			except:
-				print("location : "+texte.locationpath)
-				print("ddiid : "+ddiid)
+				logger.info("location : "+texte.locationpath)
+				logger.info("ddiid : "+ddiid)
 				pass
 			
 			divNodesCur+=1
 		# gets % of "loading completeness"
 		compl=int(divNodesCur*100/divNodesTotal)
 		 # texte.save() is taking a lot of memory !!
-		# MONITORING : print("MEMORY:"+str(psutil.phymem_usage()[3]))
+		# MONITORING : logger.info("MEMORY:"+str(psutil.phymem_usage()[3]))
 		if compl!=texte.statuscomplete and compl%5==0:
 			texte.statuscomplete = compl
 			texte.save()
@@ -767,8 +767,8 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 			s.contenttxt = re.sub('( ,)',',',allt)
 			s.save()
 		except Exception, e:
-			print("location : "+texte.locationpath)
-			print(" : "+str(e))
+			logger.info("location : "+texte.locationpath)
+			logger.info(" : "+str(e))
 			"""
 			for speaker in speakerContentDict :
 				print speaker
@@ -780,7 +780,7 @@ def parseTEIDivs(texte,nodes,speakersArray,speakersDDIDict):
 		
 ########################
 def parseTEISentences(texte,nodes,speaker):
-	#print('parseTEISentences')
+	#logger.info('parseTEISentences')
 	
 	e=texte.enquete
 	allSentencesContent=""
@@ -816,7 +816,7 @@ def parseTEISentences(texte,nodes,speaker):
 	return allSentencesContent
 ########################
 def parseTEIWords(sentence,nodes,N):
-	#print('parseTEIWords')
+	#logger.info('parseTEIWords')
 	
 	e=sentence.texte.enquete
 	t=sentence.texte
@@ -967,7 +967,7 @@ def parseTEIWords(sentence,nodes,N):
 				if codeName in CODES_IMAGE_LABELS.keys():
 					CODE_LABEL = CODES_IMAGE_LABELS[codeName].decode('utf-8')
 				else:
-					#print(codeName)
+					#logger.info(codeName)
 					
 					
 					CODE_LABEL = ' '
@@ -1025,7 +1025,7 @@ def parseTEIWords(sentence,nodes,N):
 			except:
 				# todo: to solve that thread-not-safe problem with get_or_create, which can produce duplicate entries !!!!
 				# update: is there really a problem here ?
-				print("PROBLEM: get_or_create problem :"+codeName+","+wordContent+","+str(N) )
+				logger.info("PROBLEM: get_or_create problem :"+codeName+","+wordContent+","+str(N) )
 		
 		
 		
@@ -1429,13 +1429,13 @@ class CaseInsensitiveModelBackend(ModelBackend):
 #		 intCount+=1
 #		 compl=int(intCount*100/totalInterventions)
 #		  # texte.save() is taking a lot of memory !!
-#		 # MONITORING : print("MEMORY:"+str(psutil.phymem_usage()[3]))
+#		 # MONITORING : logger.info("MEMORY:"+str(psutil.phymem_usage()[3]))
 #		 # saving texte only from time to time save A LOT of memory usage !!
 #		 if compl!=texte.statuscomplete and compl%5==0:
 #			 texte.statuscomplete = compl
 #			 texte.save()
-#		 #print("STATUS:"+str(texte.statuscomplete)+"/"+str(intCount)+":"+str(totalInterventions))
-#		 #print("=========== (STYLING) MEMORY USAGE:"+str(psutil.phymem_usage()[3]))
+#		 #logger.info("STATUS:"+str(texte.statuscomplete)+"/"+str(intCount)+":"+str(totalInterventions))
+#		 #logger.info("=========== (STYLING) MEMORY USAGE:"+str(psutil.phymem_usage()[3]))
 #	return htmlStr
 ####################################################################
 
@@ -1580,7 +1580,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 #		 else:
 #			 parts += [node.text] + midpart + [node.tail]
 #		 # filter removes possible Nones in texts and tails
-#	 #print("STRINGIFY"+res)
+#	 #logger.info("STRINGIFY"+res)
 #	 return parts
 ####################################################################
 
@@ -1758,9 +1758,9 @@ class CaseInsensitiveModelBackend(ModelBackend):
 #	 nVals = sorted(nVals) # now that its global, sort it
 # 
 # #	for lem in lineLen:
-# #		print("len:"+str(lem))
+# #		logger.info("len:"+str(lem))
 # #	for val in nVals:
-# #		print("tablo:"+str(val[0])+" = "+val[1]+"/"+val[2])
+# #		logger.info("tablo:"+str(val[0])+" = "+val[1]+"/"+val[2])
 #			 
 #	 # stores classes to insert at each global offset
 #	 classArr=range(len(nVals)) # may be smaller
@@ -1856,7 +1856,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 ##		for p in al:
 ##			u.append([p.partid])
 #		u = sorted(u)
-#		print("premier element de la liste:"+u[0])
+#		logger.info("premier element de la liste:"+u[0])
 #		return u
 ##############
 #class Part(models.Model):
@@ -1917,7 +1917,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 #			midpart+=stringify_children(cnode)
 #		parts += [node.text] + midpart + [node.tail]
 #		# filter removes possible Nones in texts and tails
-#	#print("STRINGIFY"+res)
+#	#logger.info("STRINGIFY"+res)
 #	return parts
 #####################################################################
 
@@ -1960,8 +1960,8 @@ class CaseInsensitiveModelBackend(ModelBackend):
 #			newtxtpart = TextePart(texte=self,part=thepart,content=allcontent,partid=partid)
 #			newtxtpart.save()
 #			# say hello to the new TEXTEPART
-#			#print("made NEW TEXTEPART:"+partid+"="+newtxtpart.content)
-#		print("made NEW TEXTE:"+self.texteid)
+#			#logger.info("made NEW TEXTEPART:"+partid+"="+newtxtpart.content)
+#		logger.info("made NEW TEXTE:"+self.texteid)
 	##########
 #	def getTextPart(self,partid):
 #		try:
@@ -2024,7 +2024,7 @@ class CaseInsensitiveModelBackend(ModelBackend):
 # first version - deprecated
 #class Enquete(object):
 #	def __init__(self,filepath):
-#		print("ENQUETE OBJECT CREATED with file:"+filepath)
+#		logger.info("ENQUETE OBJECT CREATED with file:"+filepath)
 #		self.tree = ElementTree()
 #		self.tree.parse(filepath)
 #		self.root = self.tree.getroot()

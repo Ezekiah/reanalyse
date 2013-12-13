@@ -635,19 +635,29 @@ def save_upload( uploaded, foldname, filename, raw_data ):
 @login_required
 def eParseFolder(request,fold):
     
+    open(settings.REANALYSEPROJECTPATH+'/logs/reanalyse_django.log', 'w').close()
+    
+
     # parsing of existing enquete folder
     
     logger.info("PARSING SERVER STUDY: "+fold)
     completePath = settings.REANALYSESAMPLE_STUDIES_FILES + fold + '/'
     # uploaded path is set to fictive location to avoid deleting files
     upPath = completePath + '/inexistent_folder/'
-    check = isMetaDocOK(enqueterootpath)
-            
+    check = isMetaDocOK(completePath)
+    
+    #return HttpResponse(completePath)
+
+    
+        
     if(not check == True):
             
         return HttpResponse(check,'application/json')
-    
-    e = importEnqueteUsingMeta(upPath,completePath)
+    else:
+        e = importEnqueteUsingMeta(upPath,completePath)
+        doFiestaToEnquete(e)
+        
+        return HttpResponse(check,'application/json')
     
     """if(e == False):
        return redirect(reverse('reanalyseapp.views.eAdmin'))
@@ -681,7 +691,8 @@ def eParse(request):
         except Exception as e:
              logger.info("EXCEPT de-zip-ing archive. weird zip ?")
              logger.info(str(e))
-             return HttpResponse(json.dumps({'error':"accents"}),'application/json')
+             pass
+             #return HttpResponse(simplejson.dumps({'error':"accents"}),'application/json')
              
         enqueterootpath = ""
         if os.path.exists(upPath+"extracted/_meta/"):

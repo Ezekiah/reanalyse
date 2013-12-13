@@ -60,6 +60,7 @@
 		{% else %}
 		{% if page == 'upload' %}
 		<! ================================================= -->
+		
 		<h1>Add a new Study</h1>
 		<div>
 			<h2>We are on dev. stage, it is MANDATORY to load only one study at at time (waiting for errors or completion), to avoid server memry overload !</h2>
@@ -67,9 +68,11 @@
 			<ul>
 				{% for s in serverAvailableStudies %}
 				<li id="load_{{s.foldername}}">
-			{%comment%}	
-			<a href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eParseFolder s.foldername %}");$("#load_{{s.foldername}}").html("study loaded - go look at it");return false;'>{{s.foldername}}</a>
-			{%endcomment%}	</li>
+					
+		
+			
+			<a class="lfold" href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eParseFolder s.foldername %}");$("#load_{{s.foldername}}").html("study loaded - go look at it");return false;'>{{s.foldername}}</a>
+			</li>
 				{% endfor %}
 			</ul>
 		</div>

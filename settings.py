@@ -12,7 +12,6 @@ TEMPLATE_DEBUG = DEBUG
 
 #REANALYSEURL
 #REANALYSEPROJECTPATH
-#REANALYSEESE_FILES
 #REANALYSESAMPLE_STUDIES_FILES
 #ALLOWED_INCLUDE_ROOTS = (REANALYSEESE_FILES)
 #READB_NAME
@@ -42,7 +41,7 @@ SOLR_JARNAME = "startreanalysesolr.jar"
 # SOLR_PORT = was 8983 by default, defined in solr/et/jetty.xml
 # from now on, we launch solr (in views.py) with -Djetty.port=SOLR_PORT to allow custom PORT
 # (avoids conflicts between multiple reanalyse instances)
-SOLR_PORT = 8986
+SOLR_PORT = 8983
 
 ######## HAYSTACK
 # Required and specific to where you place the file.
@@ -59,6 +58,8 @@ HAYSTACK_SOLR_TIMEOUT = 60 * 5
 # For admin page:
 SOLR_URL = REANALYSEURL+":"+str(SOLR_PORT)
 
+
+SESSION_COOKIE_SECURE = False
 
 ADMINS = (
  	('pierre', STAFF_EMAIL),

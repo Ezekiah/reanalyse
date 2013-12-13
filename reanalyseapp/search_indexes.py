@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 ################################################
+
 from haystack.indexes import *
 from haystack import site
 from reanalyseapp.models import *
