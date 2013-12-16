@@ -469,133 +469,151 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
         
         authors = root.findall('./authors/author')
         
+        if slug == None: slug=""
+        if title == None: title=""
+        if content == None: content=""
 
-        try:
-            
-            enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())
-            
-        except Enquiry.DoesNotExist:
-            enquiry = Enquiry.objects.create(slug=slug, 
-                                  title=title, 
-                                  content=content, 
-                                  language=lan.upper(), 
-                                  enquete=e)
-                                  
-        
-        
-        
-        place = root.find('./interview/place[@lang="'+lan+'"]').text
-        date = root.find('./interview/date[@lang="'+lan+'"]').text
-        researcher = root.find('./interview/researcher').text
-        
-        #Ajouter les TAGS
-        for author in authors:
+
+        if content != None and title != None and content != None :
             try:
-                tag = Tag.objects.get(type="AU", name=author.text)
+                enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())  
+            except Enquiry.DoesNotExist:
+                enquiry = Enquiry.objects.create(slug=slug,
+                                      title=title, 
+                                      content=content, 
+                                      language=lan.upper(), 
+                                      enquete=e)
+                                      
+            
+            place = root.find('./interview/place[@lang="'+lan+'"]').text
+            if place == None: place=""
+            
+            date = root.find('./interview/date[@lang="'+lan+'"]').text
+            if date == None: date=""
+            
+            researcher = root.find('./interview/researcher').text
+            if researcher == None: researcher=""
+    
+            
+            #Ajouter les TAGS
+            for author in authors:
+                if author == None: author=""
+                try:
+                    tag = Tag.objects.get(type="AU", name=author.text)
+                    enquiry.tags.add(tag)
+                except Tag.DoesNotExist, e:
+                    tag = Tag.objects.create(type="AU", name=author.text,slug=author.text)
+                    
+            
+            try:
+                tag = Tag.objects.get(type="Pl", name=place)
                 enquiry.tags.add(tag)
             except Tag.DoesNotExist, e:
-                tag = Tag.objects.create(type="AU", name=author.text,slug=author.text)
+                tag = Tag.objects.create(type="Pl", name=place, slug=place)
                 
-        
-        try:
-            tag = Tag.objects.get(type="Pl", name=place)
-            enquiry.tags.add(tag)
-        except Tag.DoesNotExist, e:
-            tag = Tag.objects.create(type="Pl", name=place, slug=place)
-            
-        
-        try:
-            tag = Tag.objects.get(type="Da", name=date, slug=date)
-            enquiry.tags.add(tag)
-        except Tag.DoesNotExist, e:
-            tag = Tag.objects.create(type="Da", name=date, slug=date)
-        
-        
-        try:
-            tag = Tag.objects.get(type="Rs", name=researcher, slug=researcher)
-            enquiry.tags.add(tag)
-        except Tag.DoesNotExist, e:
-            tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
-        
-                           
-        # Fetching chapters
-        thechapters = []
-        for chapter in root.findall('Chapters/Chapter'):
-            chapt = {}
-            chapt['name'] = chapter.find('./title[@lang="'+lan+'"]').text
-            chapt['html'] = chapter.find('./text[@lang="'+lan+'"]').text
-            
-            #create pins for the chapter
             
             try:
-                chapter_pin = Pin.objects.get(title=chapt['name'], slug=slugify( chapt['name']))
-                
-            except Pin.DoesNotExist:
-            
-                chapter_pin = Pin.objects.create( title=chapt['name'],
-                           abstract=chapter.find('./abstract[@lang="'+lan+'"]').text,
-                           language=lan.upper(), 
-                           slug=slugify( chapt['name'] ), 
-                           mimetype='',
-                           content=chapt['html'],
-                           local='' 
-                           )
-            
-            enquiry.pins.add( chapter_pin )
-            enquiry.save()
+                tag = Tag.objects.get(type="Da", name=date, slug=date)
+                enquiry.tags.add(tag)
+            except Tag.DoesNotExist, e:
+                tag = Tag.objects.create(type="Da", name=date, slug=date)
             
             
-            thesubchapters = []
-            for subChapter in chapter.findall('SubChapter'):
-                #try:
-                subchapt = {}
-                aud = subChapter.find('audio[@lang="'+lan+'"]')
-                subchapt['name']         = aud.attrib['name']
-                subchapt['audiopath']     = aud.attrib['location']
-                location = aud.attrib['location']
+            try:
+                tag = Tag.objects.get(type="Rs", name=researcher, slug=researcher)
+                enquiry.tags.add(tag)
+            except Tag.DoesNotExist, e:
+                tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
+            
+                               
+            # Fetching chapters
+            thechapters = []
+            for chapter in root.findall('Chapters/Chapter'):
+                chapt = {}
+                chapt['name'] = chapter.find('./title[@lang="'+lan+'"]').text
+                chapt['html'] = chapter.find('./text[@lang="'+lan+'"]').text
+                chapt['abstract'] = chapter.find('./abstract[@lang="'+lan+'"]').text
                 
-                patharchive = baseEseXmlFolder+subchapt['audiopath']              
+                if chapt['name'] == None: chapt['name']=""
+                if chapt['html'] == None: chapt['html']=""
+                if chapt['abstract'] == None: chapt['abstract']=""
                 
                 
-                if os.path.exists( patharchive ):
-                    subchapt['audiopath'] = patharchive
-                else:
-                    pathserver = settings.REANALYSEESE_FILES+'/'+e.ddi_id+'/'+ subchapt['audiopath']
-                    if os.path.exists( pathserver ):
-                        subchapt['audiopath'] = pathserver
-                    else:
-                        logger.info("["+str(e.id)+"] EXCEPT no audio file: "+patharchive)
-                        logger.info("["+str(e.id)+"] EXCEPT no audio file: "+pathserver)
-                    
-                # rather store an id referencing real path in out['audiopaths']
-                out['audiopaths'][str(apacount)] = subchapt['audiopath']
-                subchapt['audioid'] = str(apacount)
-                apacount+=1
-                thesubchapters.append(subchapt)
-                
-                pin_mimetype = mimetypes.guess_type( subchapt['audiopath'])[0]
-                
+                #create pins for the chapter
                 
                 try:
-                    sub_pin = Pin.objects.get(title=subchapt['name'], slug=slugify( subchapt['name']))
-                    print(sub_pin)
+                    chapter_pin = Pin.objects.get(title=chapt['name'], slug=slugify( chapt['name']), language=lan.upper())
+                    
                 except Pin.DoesNotExist:
-                      #create audio subPins
-                    sub_pin = Pin.objects.create( title=subchapt['name'],
-                           abstract="",
-                           language=lan.upper(), 
-                           slug=slugify( subchapt['name'] ), 
-                           mimetype=pin_mimetype,
-                           content="",
-                           local=django_settings.MEDIA_URL+'bequali_ese_files/'+folderName+'/'+os.path.normpath(location),
-                           parent=chapter_pin
-                           )
+                
+                    chapter_pin = Pin.objects.create( title=chapt['name'],
+                               abstract=chapt['abstract'],
+                               language=lan.upper(), 
+                               slug=slugify( chapt['name'] ), 
+                               mimetype='',
+                               content=chapt['html'],
+                               local='' 
+                               )
+                
+                enquiry.pins.add( chapter_pin )
+                enquiry.save()
                 
                 
-            chapt['subchapters'] = thesubchapters
-            thechapters.append(chapt)
-        res['chapters'] = thechapters
-        out[lan] = res
+                thesubchapters = []
+                for subChapter in chapter.findall('SubChapter'):
+                    #try:
+                    subchapt = {}
+                    aud = subChapter.find('audio[@lang="'+lan+'"]')
+                    subchapt['name']         = aud.attrib['name']
+                    subchapt['audiopath']     = aud.attrib['location']
+                    location = aud.attrib['location']
+                    
+                    if subchapt['name'] == None: subchapt['name']=""
+                    if subchapt['audiopath'] == None: subchapt['audiopath']=""
+                    if location == None: location=""
+                    
+                    
+                    patharchive = baseEseXmlFolder+subchapt['audiopath']              
+                    
+                    
+                    if os.path.exists( patharchive ):
+                        subchapt['audiopath'] = patharchive
+                    else:
+                        pathserver = settings.REANALYSEESE_FILES+'/'+e.ddi_id+'/'+ subchapt['audiopath']
+                        if os.path.exists( pathserver ):
+                            subchapt['audiopath'] = pathserver
+                        else:
+                            logger.info("["+str(e.id)+"] EXCEPT no audio file: "+patharchive)
+                            logger.info("["+str(e.id)+"] EXCEPT no audio file: "+pathserver)
+                        
+                    # rather store an id referencing real path in out['audiopaths']
+                    out['audiopaths'][str(apacount)] = subchapt['audiopath']
+                    subchapt['audioid'] = str(apacount)
+                    apacount+=1
+                    thesubchapters.append(subchapt)
+                    
+                    pin_mimetype = mimetypes.guess_type( subchapt['audiopath'])[0]
+                    
+                    
+                    try:
+                        sub_pin = Pin.objects.get(slug=slugify( subchapt['name'] ), language=lan.upper())
+                    except Pin.DoesNotExist:
+                        #create audio subPins
+                        sub_pin = Pin.objects.create( title=subchapt['name'],
+                               abstract="",
+                               language=lan.upper(), 
+                               slug=slugify( subchapt['name'] ), 
+                               mimetype=pin_mimetype,
+                               content="",
+                               local=django_settings.MEDIA_URL+'bequali_ese_files/'+folderName+'/'+os.path.normpath(location),
+                               parent=chapter_pin
+                               )
+                    
+                    
+                chapt['subchapters'] = thesubchapters
+                thechapters.append(chapt)
+            res['chapters'] = thechapters
+            out[lan] = res
         
         
         
