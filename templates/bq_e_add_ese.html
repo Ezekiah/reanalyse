@@ -1,0 +1,44 @@
+{% extends "bq_e_base.html" %}
+
+{% load i18n %}
+{% load ssi from future %}
+
+{% block enqueteheadmore %}
+	
+	<script src="{{ MEDIA_URL }}/jplayer/js/jquery.jplayer.min.js"></script>
+	<script src="{{ MEDIA_URL }}/jplayer/js/customPlayer.js"></script>
+	<link rel="stylesheet" href="{{ MEDIA_URL }}/jplayer/css/jplayer.blue.monday.css"/>
+	
+	<script src="{{ MEDIA_URL }}/verticaltabs/js/verticaltabs.js"></script>
+
+{% endblock %}
+
+
+{% block content %}
+	<div class="contentHtml">
+		{{e.id}}
+		<ul>
+{% for s in serverAvailableEse %}
+	
+	
+	<li id="load_{{s.foldername}}">
+		
+		<a class="lfold" href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eParseFolderEse s.foldername 274 %}");$("#load_{{s.foldername}}").html("study loaded - go look at it");return false;'>{{s.foldername}}</a>
+	</li>
+	{% endfor %}
+	
+	</ul>
+	
+	</div>
+	
+{% endblock %}
+
+
+
+{% block enquetebottommore %}
+
+
+
+
+{% endblock %}
+
