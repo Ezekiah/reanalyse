@@ -633,6 +633,43 @@ def save_upload( uploaded, foldname, filename, raw_data ):
 
 ################################################################################
 @login_required
+def eParseFolderEse(request,fold, eid):
+
+    open(settings.REANALYSEPROJECTPATH+'/logs/reanalyse_django.log', 'w').close()
+    
+    # parsing of existing enquete folder
+    
+    logger.info("PARSING SERVER ESE: "+fold)
+    completePath = settings.REANALYSEESE_FILES + fold + '/'+'ese.xml'
+    # uploaded path is set to fictive location to avoid deleting files
+    upPath = completePath + '/inexistent_folder/'
+    #check = isMetaDocOK(completePath)
+    
+    #return HttpResponse(completePath)
+
+    
+    importEnqueteSurEnquete(completePath, eid)
+    
+    
+    """    
+    if(not check == True):
+            
+        return HttpResponse(check,'application/json')
+    else:
+        e = importEnqueteUsingMeta(upPath,completePath)
+        doFiestaToEnquete(e)
+        
+        return HttpResponse(check,'application/json')
+    
+    if(e == False):
+       return redirect(reverse('reanalyseapp.views.eAdmin'))
+    elif e==True:
+           doFiestaToEnquete(e)"""
+################################################################################
+
+
+################################################################################
+@login_required
 def eParseFolder(request,fold):
     
     open(settings.REANALYSEPROJECTPATH+'/logs/reanalyse_django.log', 'w').close()
@@ -855,15 +892,29 @@ def eShow(request,eid):
 @login_required
 def eseShow(request,eid):
     e = Enquete.objects.get(id=eid)
-    if len(e.ese)>1:
+    """if len(e.ese)>1:
         ese = simplejson.loads(e.ese)
     else:
         ese = None
     lan = request.LANGUAGE_CODE
-    ctx = {'bodyid':'e','pageid':'ese','enquete':e,'ese':ese[lan]}
+    
     updateCtxWithPerm(ctx,request,e)
-    updateCtxWithSearchForm(ctx)
-    return render_to_response('bq_e_ese.html',ctx ,context_instance=RequestContext(request))
+    updateCtxWithSearchForm(ctx)"""
+    
+    serverAvailableEse = []
+    for foldername in os.listdir(settings.REANALYSEESE_FILES):
+        #logger.info("Listing existing study folder: "+foldername)
+        serverAvailableEse.append({'foldername':foldername})
+    
+    ctx = {'bodyid':'e','pageid':'ese','enquete':e}
+     
+    ctx.update({'serverAvailableEse':serverAvailableEse})
+    
+    
+    #return render_to_response('bq_e_ese.html',ctx ,context_instance=RequestContext(request))
+    
+    return render_to_response('bq_e_add_ese.html',ctx ,context_instance=RequestContext(request))
+    
 ###########################################################################
 
     

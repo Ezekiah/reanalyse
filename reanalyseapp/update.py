@@ -236,64 +236,6 @@ def deleteSpeakers(enquete_id):
 
 
 
-def reloadSpeakers(enquete_id, spkPath):
-    
-    enquete = Enquete.objects.get(id=enquete_id )
-    print(spkPath)
-    if os.path.exists(spkPath):
-        print("=========== PARSING META_SPEAKERS.CSV")            
-        ###### Parsing Speakers
-        spk = bag.csv2.UnicodeDictReader(open(spkPath),delimiter=getCsvDelimiter(spkPath),quotechar='"')
-        headers = spk.fieldnames
-        mandatories = ["*pseudo","*id","*type"]
-        attributetypes=[]
-        
-        
-        
-        for catval in headers:
-            if catval not in mandatories: # we create only "un-mandatory" attributetypes, since mandatories are stored in speaker model structure
-                if catval.startswith("_") or catval.startswith("*"):
-                    publicy = '0'
-                else:
-                    publicy = '1'
-        
-                newAttType,isnew = AttributeType.objects.get_or_create(enquete=enquete,publicy=publicy,name=catval)
-                attributetypes.append(newAttType)
-        
-        for row in spk:
-        
-            #try:
-            if row['id']!='descr':
-                spk_id =     row['id']
-                spk_type =     SPEAKER_TYPE_CSV_DICT.get(row['type'],'OTH')
-                spk_name =     row['pseudo']
-        
-                #verify if the speaker exists
-                
-                
-                
-                newSpeaker,isnew = Speaker.objects.get_or_create(enquete=enquete,ddi_id=spk_id,ddi_type=spk_type,name=spk_name)
-                
-                
-                
-                newSpeaker.public = (spk_type=='SPK' or spk_type=='PRO')
-    
-                for attype in attributetypes:
-                    
-                    attval=row[attype.name]
-                    if attval=='':
-                        attval='[NC]'
-                        newAttribute,isnew = Attribute.objects.get_or_create(enquete=enquete,attributetype=attype,name=attval)
-                        newSpeaker.attributes.add(newAttribute)
-               
-                try:
-                   newSpeaker.save()
-                except Exception, error:
-                    print "An exception was thrown!"
-                    print str(error)
-    else:
-        print("=========== PARSING: no spk meta found")
-           
 
 
 def commit_enquete( enquete_id ):
@@ -369,27 +311,6 @@ def main( argv ):
        return parseAllTeis( options.enquete_id )
 
     
-    if options.func == "exportEnquete" :
-       print(options.func)
-       # reparseAllteis file of an enquete
-       return exportEnquete( options.enquete_id, options.filetype )
-    
-    
-    if options.func == "reloadSpeakers" :
-        print(options.enquete_id)
-        return reloadSpeakers( options.enquete_id, options.csvfile )
-    
-    
-    if options.func == "deleteSpeakers" :
-        print(options.func)
-        # reparseAllteis file of an enquete
-        return deleteSpeakers( options.enquete_id )
-    
-    if options.func == "deserialize_data" :
-        print(options.func)
-        # reparseAllteis file of an enquete
-        return deserialize_data( options.csvfile )
-    
     if options.func == "importEnqueteSurEnquete" :
         print(options.func)
         # reparseAllteis file of an enquete
@@ -435,17 +356,21 @@ def main( argv ):
 
 
 def importEnqueteSurEnquete(eseXmlPath, enquete_id):
-   
+    
     e = Enquete.objects.get(id=enquete_id)
     
+
     tree = etree.parse(eseXmlPath)
     root = tree.getroot()
     
     baseEseXmlFolder = '/'.join(eseXmlPath.split('/')[:-1])+'/'
     
     
+    
     fileName = os.path.basename(os.path.normpath(eseXmlPath))
     folderName = os.path.basename(os.path.normpath(baseEseXmlFolder))
+    
+    
     
     
     out = {}
@@ -454,6 +379,31 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
     
     
     for lan in ['fr','en']:
+        
+
+        #delete all pins
+        try:
+            enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())
+            
+            pins = enquiry.pins.all()
+            
+            for pin in pins:
+                
+                sub_pins = Pin.objects.filter(parent=pin)
+                
+                for sub_pin in sub_pins:
+                
+                    sub_pin.delete()
+                
+                pin.delete()
+                
+            
+        except Enquiry.DoesNotExist:
+            print('o')
+            pass
+        
+        
+        
         res = {}
         
         # Fetching report
@@ -469,11 +419,6 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
         
         authors = root.findall('./authors/author')
         
-        if slug == None: slug=""
-        if title == None: title=""
-        if content == None: content=""
-
-
         if content != None and title != None and content != None :
             try:
                 enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())  
@@ -605,11 +550,12 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
                                slug=slugify( subchapt['name'] ), 
                                mimetype=pin_mimetype,
                                content="",
-                               local=django_settings.MEDIA_URL+'bequali_ese_files/'+folderName+'/'+os.path.normpath(location),
+                               local=django_settings.MEDIA_URL+'reanalyse_ese_files/'+folderName+'/'+os.path.normpath(location),
+                               
+                               #local=django_settings.REANALYSEESE_FILES+'/'+ folderName +'/'+ os.path.normpath(location),
                                parent=chapter_pin
                                )
-                    
-                    
+                        
                 chapt['subchapters'] = thesubchapters
                 thechapters.append(chapt)
             res['chapters'] = thechapters

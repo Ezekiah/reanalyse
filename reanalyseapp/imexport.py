@@ -376,11 +376,20 @@ def importEnqueteUsingMeta(upPath,folderPath):
                 ### very special for ese, don't create any texte() model, just parse ese.xml and fill enquete.ese with a json
                 if doc_mimetype=='ese':
                     #try:
-                    esedict = getEnqueteSurEnqueteJson(file_location,newEnquete)
+                    esedict = getEnqueteSurEnqueteJson(settings.REANALYSEESE_FILES+'/'+row['file'],newEnquete)
                     newEnquete.ese = simplejson.dumps(esedict,indent=4,ensure_ascii=False)
-                    importEnqueteSurEnquete(file_location,newEnquete)
                     
-                    newEnquete.save()
+                    
+                    #import shutil
+                    
+                    #source = os.path.normpath('/'.join(file_location.split('/')[:-1]))
+                    
+                    #destination = settings.REANALYSEESE_FILES+os.path.basename(source)
+            
+                    #shutil.move(destination, source)
+                    
+                    
+                    importEnqueteSurEnquete(settings.REANALYSEESE_FILES+'/'+row['file'],newEnquete.id)
                     #except:
                         #logger.info(eidstr+"EXCEPT with ESE")
                        
@@ -495,7 +504,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
     #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
     csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
     update( newEnquete.texte_set.all(), newEnquete, csvdict )
-    
+
     
     
     

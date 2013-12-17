@@ -32,6 +32,7 @@ urlpatterns = patterns( settings.ROOT_DIRECTORY_NAME,
 	(r'^e/reset$', 'reanalyseapp.views.eReset'),							# RESET (erase temp upload folder)
 	(r'^e/parse$', 'reanalyseapp.views.eParse'),							# PARSE (once all files uploaded in a specific folder)
 	(r'^e/parsefolder/(?P<fold>\w+)$', 'reanalyseapp.views.eParseFolder'),	# PARSE (existing folder)
+	(r'^e/parsefolderEse/(?P<fold>\w+)/(?P<eid>\d+)$', 'reanalyseapp.views.eParseFolderEse'),
 	(r'^e/(?P<eid>\d+)/delete$', 'reanalyseapp.views.eDelete'),				# DELETE
 	
 	(r'^e/solrkill$', 'reanalyseapp.views.killSolrProcess'),	# kill solr (will be relaunched on admin panel)
