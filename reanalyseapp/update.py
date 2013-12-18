@@ -420,6 +420,7 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
         authors = root.findall('./authors/author')
         
         if content != None and title != None and content != None :
+
             try:
                 enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())  
             except Enquiry.DoesNotExist:
@@ -436,10 +437,8 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
             date = root.find('./interview/date[@lang="'+lan+'"]').text
             if date == None: date=""
             
-            researcher = root.find('./interview/researcher').text
-            if researcher == None: researcher=""
-    
-            
+            researchers = root.findall('./interview/researchers/researcher')
+        
             #Ajouter les TAGS
             for author in authors:
                 if author == None: author=""
@@ -464,11 +463,13 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
                 tag = Tag.objects.create(type="Da", name=date, slug=date)
             
             
-            try:
-                tag = Tag.objects.get(type="Rs", name=researcher, slug=researcher)
-                enquiry.tags.add(tag)
-            except Tag.DoesNotExist, e:
-                tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
+            
+            for researcher in researchers:
+                try:
+                    tag = Tag.objects.get(type="Rs", name=researcher.text, slug=researcher.text)
+                    enquiry.tags.add(tag)
+                except Tag.DoesNotExist, e:
+                    tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
             
                                
             # Fetching chapters

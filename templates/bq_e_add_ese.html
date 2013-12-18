@@ -16,23 +16,94 @@
 
 {% block content %}
 	<div class="contentHtml">
-		{{e.id}}
+		
+		
+		<h1>
+			
+			{% if enquiry %}
+			
+			<a href="{{settings.REANALYSEURL}}/{{settings.ROOT_DIRECTORY_NAME}}/enquiry/{{enquete.id}}">{{enquiry.title}}</a>
+			{%else%}
+			
+			Aucune ESE chargée sur cette enquête
+			
+			{% endif %}</h1>
+		
+		
+		
+		<h2>Ci-dessous, les ESE chargées sur le serveur, cliquez pour attacher une ESE sur l'enquête "{{enquete.name}}"</h2>
+		
 		<ul>
 {% for s in serverAvailableEse %}
 	
 	
+	
+	
 	<li id="load_{{s.foldername}}">
 		
-		<a class="lfold" href="" onclick='doGetAtUrl("{% url reanalyseapp.views.eParseFolderEse s.foldername 274 %}");$("#load_{{s.foldername}}").html("study loaded - go look at it");return false;'>{{s.foldername}}</a>
+		<a class="lfold" href="" onclick='if(confirm("Voulez-vous charger cette ESE à l enquête {{enquete.name}}?")){ doGetAtUrl("{% url reanalyseapp.views.eParseFolderEse s.foldername enquete.id %}", function(){$("#load_{{s.foldername}}").html("Enquete sur l enquete chargee <a href=\"{{settings.REANALYSEURL}}/{{settings.ROOT_DIRECTORY_NAME}}/enquiry/{{enquete.id}}\">lien</a>");location.assign(location.href)});return false;}'>{{s.foldername}}</a>
 	</li>
+	
+
 	{% endfor %}
 	
 	</ul>
+	
+	
+	
+	<h2>Uploader un zip d'enquête sur l'enquête sur le serveur:</h2>
+	<div id="file-uploader">
+		<noscript>
+			<p>Please enable JavaScript to use file uploader.</p>
+			<!-- or put a simple form for upload here -->
+		</noscript>
+	</div>
 	
 	</div>
 	
 {% endblock %}
 
+
+{% block bottom %}
+<script src="{{ MEDIA_URL }}/fileuploader/fileuploader.js" type="text/javascript"></script>
+<link rel="stylesheet" href="{{ MEDIA_URL }}/fileuploader/fileuploader.css"/>
+<script type="text/javascript">
+	///////////////////////////////////////////////////////////////////////////////////
+	function createUploader(){            
+        var uploader = new qq.FileUploader({
+            element: $('#file-uploader')[0],
+            action: "{% url reanalyseapp.views.eAddAjax %}",
+            debug: true,
+            multiple: true,
+			params: {
+				'csrf_token': '{{csrf_token}}',
+				'csrf_name': 'csrfmiddlewaretoken',
+				'csrf_xname': 'X-CSRFToken',
+				'foldname': '{{foldname}}',
+				'type':'ese'
+			},
+			onSubmit: function(id, fileName){
+				// when clicked
+			},
+			onComplete: function( id, fileName, responseJSON ) {
+				// on each file complete
+			},
+			onAllComplete: function( uploads ) {
+				$("#file-uploader").html("L'enquête sur l'enquête est uploadée sur le serveur");
+				location.assign(location.href);
+			
+			}
+        });           
+    }
+	///////////////////////////////////////////////////////////////////////////////////
+	$(function () {
+		createUploader(); 
+  	});
+  	///////////////////////////////////////////////////////////////////////////////////
+ 
+</script>
+
+{% endblock %}
 
 
 {% block enquetebottommore %}

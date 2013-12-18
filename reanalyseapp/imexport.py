@@ -388,8 +388,8 @@ def importEnqueteUsingMeta(upPath,folderPath):
             
                     #shutil.move(destination, source)
                     
-                    
                     importEnqueteSurEnquete(settings.REANALYSEESE_FILES+'/'+row['file'],newEnquete.id)
+                    
                     #except:
                         #logger.info(eidstr+"EXCEPT with ESE")
                        

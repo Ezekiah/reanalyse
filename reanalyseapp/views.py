@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+from outside.models import Enquiry
+
 ###########################################################################
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login
@@ -58,6 +61,7 @@ from reanalyseapp.imexport import *
 from reanalyseapp.forms import *
 from reanalyseapp.visualization import *
 from reanalyseapp.search import *
+
 
 # Search with haystack
 from haystack.views import *
@@ -574,7 +578,17 @@ def eAddAjax(request):
     d={}
     success=""
     if request.method == "POST":
+        
+       
+        
         foldname = request.GET['foldname']
+        
+        
+        if(request.GET['type'] == 'study'):
+            wantedDir = settings.REANALYSEUPLOADPATH+"/"+foldname
+            
+        elif(request.GET['type'] == 'ese'):
+            wantedDir = settings.REANALYSEUPLOADPATH+"/ese_zips/"
         if request.is_ajax( ):
             upload = request
             is_raw = True
@@ -590,14 +604,14 @@ def eAddAjax(request):
                 raise Http404( "Bad Upload" )
             filename = upload.name
     
-        success = save_upload( upload, foldname, filename, is_raw )
+        success = save_upload( upload, foldname, filename, is_raw, wantedDir, type=request.GET['type'])
         d['success'] = success
         d['loc'] = foldname+"/"+filename
     jsondata = simplejson.dumps(d,indent=4,ensure_ascii=False)
     return HttpResponse(jsondata, mimetype="application/json")
 ################################################################################
 @login_required
-def save_upload( uploaded, foldname, filename, raw_data ):
+def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
     ''' 
     raw_data: if True, uploaded is an HttpRequest object with the file being
             the raw post data 
@@ -607,7 +621,7 @@ def save_upload( uploaded, foldname, filename, raw_data ):
     try:
         from io import FileIO, BufferedWriter
         # check if dir exist, create it if needed
-        wantedDir = settings.REANALYSEUPLOADPATH+"/"+foldname
+        #wantedDir = settings.REANALYSEUPLOADPATH+"/"+foldname
         if not os.path.exists(wantedDir):
             os.mkdir(wantedDir)
         with BufferedWriter( FileIO( wantedDir+"/"+filename, "wb" ) ) as dest:
@@ -623,6 +637,26 @@ def save_upload( uploaded, foldname, filename, raw_data ):
                 for c in uploaded.chunks( ):
                     dest.write( c )
         # got through saving the upload, report success
+        
+        #unzip
+        if type == 'ese':
+            
+            try:
+                import zipfile
+                
+   
+                 
+                with zipfile.ZipFile(wantedDir+"/"+filename, "r") as z:
+                    
+                    z.extractall(settings.REANALYSEESE_FILES)
+
+
+                 
+            except Exception as e:
+                 logger.info("EXCEPT de-zip-ing archive. weird zip ?")
+                 logger.info(str(e))
+                 pass
+        
         return True
     except IOError:
         # could not open the file most likely
@@ -650,6 +684,8 @@ def eParseFolderEse(request,fold, eid):
     
     importEnqueteSurEnquete(completePath, eid)
     
+    
+    return HttpResponse(1,'application/json')
     
     """    
     if(not check == True):
@@ -892,6 +928,13 @@ def eShow(request,eid):
 @login_required
 def eseShow(request,eid):
     e = Enquete.objects.get(id=eid)
+    
+    try:
+        enquiry = Enquiry.objects.get( enquete=e, language='FR')
+    except Enquiry.DoesNotExist:
+        enquiry = False
+       
+    ############DEPRECATED############   
     """if len(e.ese)>1:
         ese = simplejson.loads(e.ese)
     else:
@@ -906,9 +949,9 @@ def eseShow(request,eid):
         #logger.info("Listing existing study folder: "+foldername)
         serverAvailableEse.append({'foldername':foldername})
     
-    ctx = {'bodyid':'e','pageid':'ese','enquete':e}
+    ctx = {'bodyid':'e','pageid':'ese','enquete':e, 'settings':settings}
      
-    ctx.update({'serverAvailableEse':serverAvailableEse})
+    ctx.update({'serverAvailableEse':serverAvailableEse, 'enquiry':enquiry})
     
     
     #return render_to_response('bq_e_ese.html',ctx ,context_instance=RequestContext(request))
