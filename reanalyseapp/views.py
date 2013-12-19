@@ -87,6 +87,8 @@ import re
 # pythonsolr for raw_queries involving termVectors (pysolr does not)
 import pythonsolr
 
+from io import FileIO, BufferedWriter
+
 ###########################################################################
 # LOGGING
 ###########################################################################
@@ -608,7 +610,7 @@ def eAddAjax(request):
         success = save_upload( upload, foldname, filename, is_raw, wantedDir, type=request.GET['type'])
         d['success'] = success
         d['loc'] = foldname+"/"+filename
-    jsondata = simplejson.dumps(d,indent=4,ensure_ascii=False)
+    jsondata = success
     return HttpResponse(jsondata, mimetype="application/json")
 ################################################################################
 @login_required
@@ -620,7 +622,7 @@ def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
             submission and is a regular Django UploadedFile in request.FILES
     '''
     try:
-        from io import FileIO, BufferedWriter
+        
         # check if dir exist, create it if needed
         #wantedDir = settings.REANALYSEUPLOADPATH+"/"+foldname
         if not os.path.exists(wantedDir):
@@ -645,17 +647,18 @@ def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
             try:
                 import zipfile
                 
-   
-                 
+                if not os.path.exists(settings.REANALYSEESE_FILES):
+                    os.mkdir(settings.REANALYSEESE_FILES)
+                
                 with zipfile.ZipFile(wantedDir+"/"+filename, "r") as z:
-                    
                     z.extractall(settings.REANALYSEESE_FILES)
+                    
+                
 
-
-                 
             except Exception as e:
                  logger.info("EXCEPT de-zip-ing archive. weird zip ?")
                  logger.info(str(e))
+                 return simplejson.dumps({'dir':str(e)})
                  pass
         
         return True
@@ -946,15 +949,16 @@ def eseShow(request,eid):
     updateCtxWithSearchForm(ctx)"""
     
     serverAvailableEse = []
-    for foldername in os.listdir(settings.REANALYSEESE_FILES):
-        #logger.info("Listing existing study folder: "+foldername)
-        serverAvailableEse.append({'foldername':foldername})
     
     ctx = {'bodyid':'e','pageid':'ese','enquete':e, 'settings':settings}
-     
-    ctx.update({'serverAvailableEse':serverAvailableEse, 'enquiry':enquiry})
     
+    if os.path.exists(settings.REANALYSEESE_FILES):
+        for foldername in os.listdir(settings.REANALYSEESE_FILES):
+            #logger.info("Listing existing study folder: "+foldername)
+            serverAvailableEse.append({'foldername':foldername})
+            ctx.update({'serverAvailableEse':serverAvailableEse, 'enquiry':enquiry})
     
+
     #return render_to_response('bq_e_ese.html',ctx ,context_instance=RequestContext(request))
     
     return render_to_response('bq_e_add_ese.html',ctx ,context_instance=RequestContext(request))
