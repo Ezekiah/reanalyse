@@ -60,7 +60,6 @@ def update( textes, enquete, csvdict ):
         viz = VizControl( enquete=enquete, timeline=True, classement=True, map=True )
         viz.save()
     
-   
     
     
     for (counter, row) in enumerate(csvdict):

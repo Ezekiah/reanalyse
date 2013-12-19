@@ -144,6 +144,12 @@ def doFiestaToEnquete(e):
     logger.info("["+str(e.id)+"] IMPORT PROCESS DONE SUCCESSFULLY !")
     
     
+    #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
+    csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
+    update( newEnquete.texte_set.all(), newEnquete, csvdict )
+    
+    
+    
     
 ###########################################################################
 
@@ -499,13 +505,6 @@ def importEnqueteUsingMeta(upPath,folderPath):
         
     newEnquete.status='5'
     newEnquete.save()
-    
-    
-    #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
-    csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
-    update( newEnquete.texte_set.all(), newEnquete, csvdict )
-
-    
     
     
     return newEnquete
