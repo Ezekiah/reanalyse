@@ -139,7 +139,7 @@ def doFiestaToEnquete(e):
             logger.info("["+str(e.id)+"] EXCEPT making Cloud or Graphs")
         
     e.statuscomplete = 100        
-    e.status='0'
+    e.status='5'
     e.save()
     logger.info("["+str(e.id)+"] IMPORT PROCESS DONE SUCCESSFULLY !")
     
@@ -388,7 +388,7 @@ def importEnqueteUsingMeta(upPath,folderPath):
             
                     #shutil.move(destination, source)
                     
-                    importEnqueteSurEnquete(settings.REANALYSEESE_FILES+'/'+row['file'],newEnquete.id)
+                    #importEnqueteSurEnquete(settings.REANALYSEESE_FILES+'/'+row['file'],newEnquete.id)
                     
                     #except:
                         #logger.info(eidstr+"EXCEPT with ESE")

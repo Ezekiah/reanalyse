@@ -11,6 +11,7 @@ import os,re,mimetypes
 from django.conf import settings as django_settings
 
 from django.template.defaultfilters import slugify
+import simplejson
 
 
 # get path of the django project
@@ -357,13 +358,27 @@ def main( argv ):
 
 def importEnqueteSurEnquete(eseXmlPath, enquete_id):
     
-    e = Enquete.objects.get(id=enquete_id)
+    
+    try:
+         e = Enquete.objects.get(id=enquete_id)
+         return simplejson.dumps({'e':e.name})
+    except Enquete.DoesNotExist:
+            pass
+   
     
 
     tree = etree.parse(eseXmlPath)
     root = tree.getroot()
     
     baseEseXmlFolder = '/'.join(eseXmlPath.split('/')[:-1])+'/'
+    
+    
+    xmlschema_doc = etree.parse(baseEseXmlFolder+'/ese.xsd')
+    xmlschema = etree.XMLSchema(xmlschema_doc)
+    
+    if xmlschema.validate(tree) == False :
+        return simplejson.dumps({'error':'Le fichier XML ne correspond pas au schema XSD'})
+    
     
     
     
@@ -519,18 +534,9 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
                     if location == None: location=""
                     
                     
-                    patharchive = baseEseXmlFolder+subchapt['audiopath']              
-                    
-                    
-                    if os.path.exists( patharchive ):
-                        subchapt['audiopath'] = patharchive
-                    else:
-                        pathserver = settings.REANALYSEESE_FILES+'/'+e.ddi_id+'/'+ subchapt['audiopath']
-                        if os.path.exists( pathserver ):
-                            subchapt['audiopath'] = pathserver
-                        else:
-                            logger.info("["+str(e.id)+"] EXCEPT no audio file: "+patharchive)
-                            logger.info("["+str(e.id)+"] EXCEPT no audio file: "+pathserver)
+                   
+
+                   
                         
                     # rather store an id referencing real path in out['audiopaths']
                     out['audiopaths'][str(apacount)] = subchapt['audiopath']
@@ -564,7 +570,7 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
         
         
         
-    return out
+    return simplejson.dumps({'success':1})
     
     pass
 

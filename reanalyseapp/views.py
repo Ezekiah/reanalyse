@@ -682,10 +682,10 @@ def eParseFolderEse(request,fold, eid):
     #return HttpResponse(completePath)
 
     
-    importEnqueteSurEnquete(completePath, eid)
+    ese_import = importEnqueteSurEnquete(completePath, eid)
     
     
-    return HttpResponse(1,'application/json')
+    return HttpResponse(ese_import,'application/json')
     
     """    
     if(not check == True):
