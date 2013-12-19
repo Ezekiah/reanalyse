@@ -140,7 +140,12 @@ def doFiestaToEnquete(e):
         
     e.statuscomplete = 100        
     e.status='5'
+    
+    
+    e.ese = 'deprecated'
+    e.tags.add(Tag( type=Tag.STUDY, slug=e.name, name=e.name))
     e.save()
+    
     logger.info("["+str(e.id)+"] IMPORT PROCESS DONE SUCCESSFULLY !")
     
     

@@ -41,8 +41,13 @@
 	
 	<li id="load_{{s.foldername}}">
 		
-		<a class="lfold" href="" onclick='if(confirm("Voulez-vous charger cette ESE à l enquête {{enquete.name}}?")){ doGetAtUrl("{% url reanalyseapp.views.eParseFolderEse s.foldername enquete.id %}", func);return false;}'>{{s.foldername}}</a>
+		<a class="lfold" href="" onclick='clicked = this; if(confirm("Voulez-vous charger cette ESE à l enquête {{enquete.name}}?")){ doGetAtUrl("{% url reanalyseapp.views.eParseFolderEse s.foldername enquete.id %}", func);return false;}'>{{s.foldername}}</a>
 	</li>
+	
+	
+	{% endfor %}
+	
+	</ul>
 	
 	<script>
 		function func(json){
@@ -52,17 +57,13 @@
 				
 			} else if(json.success = 1){
 			
-				$("#load_{{s.foldername}}").html("Enquete sur l enquete chargee <a href=\"{{settings.REANALYSEURL}}/{{settings.ROOT_DIRECTORY_NAME}}/enquiry/{{enquete.id}}\">lien</a>");
+				$(clicked).parent().html("Enquete sur l enquete chargee <a href=\"{{settings.REANALYSEURL}}/{{settings.ROOT_DIRECTORY_NAME}}/enquiry/{{enquete.id}}\">lien</a>");
 			}
 			
 			//location.assign(location.href)
 		}
 		
 	</script>
-	{% endfor %}
-	
-	</ul>
-	
 	
 	
 	<h2>Uploader un zip d'enquête sur l'enquête sur le serveur:</h2>

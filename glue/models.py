@@ -20,12 +20,14 @@ class Tag( models.Model ):
 	ARTICLE = 'AR'
 	INSTITUTION = 'In'
 	RESEARCHER = 'Rs'
+	STUDY = 'ST'
 	
 	TYPE_CHOICES = (
         (AUTHOR, 'Author'),
         (ARTICLE, 'Article'),
         (INSTITUTION, 'Institution'),
         (RESEARCHER, 'Researcher'),
+        (STUDY, 'ST'),
     )
 
 	name = models.CharField(max_length=128) # e.g. 'Mr. E. Smith'

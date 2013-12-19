@@ -359,10 +359,9 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
     
     
     try:
-         e = Enquete.objects.get(id=enquete_id)
-         return simplejson.dumps({'e':e.name})
+        enquete = Enquete.objects.get(id=enquete_id) 
     except Enquete.DoesNotExist:
-            pass
+        return simplejson.dumps({'e':e.name})
    
     
 
@@ -394,10 +393,10 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
     
     for lan in ['fr','en']:
         
-
+        
         #delete all pins
         try:
-            enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())
+            enquiry = Enquiry.objects.get(enquete=enquete,language=lan.upper())
             
             pins = enquiry.pins.all()
             
@@ -436,13 +435,13 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
         if content != None and title != None and content != None :
 
             try:
-                enquiry = Enquiry.objects.get(enquete=e,language=lan.upper())  
+                enquiry = Enquiry.objects.get(enquete=enquete,language=lan.upper())  
             except Enquiry.DoesNotExist:
                 enquiry = Enquiry.objects.create(slug=slug,
                                       title=title, 
                                       content=content, 
                                       language=lan.upper(), 
-                                      enquete=e)
+                                      enquete=enquete)
                                       
             
             place = root.find('./interview/place[@lang="'+lan+'"]').text
@@ -483,7 +482,7 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
                     tag = Tag.objects.get(type="Rs", name=researcher.text, slug=researcher.text)
                     enquiry.tags.add(tag)
                 except Tag.DoesNotExist, e:
-                    tag = Tag.objects.create(type="Rs", name=researcher, slug=researcher)
+                    tag = Tag.objects.create(type="Rs", name=researcher.text, slug=researcher.text)
             
                                
             # Fetching chapters

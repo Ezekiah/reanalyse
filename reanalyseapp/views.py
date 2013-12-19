@@ -61,6 +61,7 @@ from reanalyseapp.imexport import *
 from reanalyseapp.forms import *
 from reanalyseapp.visualization import *
 from reanalyseapp.search import *
+from update import *
 
 
 # Search with haystack
