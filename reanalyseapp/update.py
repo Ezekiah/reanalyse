@@ -77,7 +77,7 @@ def update( textes, enquete, csvdict ):
             texte_name = row['name']
             locationgeo = re.sub( r'[^0-9\.,-]', '', row['locationgeo'])
             
-
+            
             
             #researcher = row['*researcher']
             article =  row['article']
@@ -321,28 +321,28 @@ def main( argv ):
         error("enquete_id arg not found!", parser)
 
     
-   
+    if options.func == "update":
 
-    if not os.path.exists( options.csvfile ):
-        error( message="csv file was not found.", parser=parser )
-
-    try:
-        enquete = Enquete.objects.get( id=options.enquete_id )
-        textes = Texte.objects.filter( enquete=enquete )
-    except Enquete.DoesNotExist, e:
-        error("noo %s" % e, parser )
-
-    if textes.count() == 0:
-        error("no Texte is attached ...? Is that possible ?", parser )
-
-    # parse csv file !
-
-    csvdict = bag.csv2.UnicodeDictReader(open(options.csvfile, 'rb'), delimiter=';',
-                            encoding='utf-8')
+        if not os.path.exists( options.csvfile ):
+            error( message="csv file was not found.", parser=parser )
     
-    for t in textes:
-       pass# print(textes.count())#print t.name #, t.locationpath
-    update( textes, enquete, csvdict )
+        try:
+            enquete = Enquete.objects.get( id=options.enquete_id )
+            textes = Texte.objects.filter( enquete=enquete )
+        except Enquete.DoesNotExist, e:
+            error("noo %s" % e, parser )
+    
+        if textes.count() == 0:
+            error("no Texte is attached ...? Is that possible ?", parser )
+    
+        # parse csv file !
+    
+        csvdict = bag.csv2.UnicodeDictReader(open(options.csvfile, 'rb'), delimiter=';',
+                                encoding='utf-8')
+        
+        for t in textes:
+           pass# print(textes.count())#print t.name #, t.locationpath
+        update( textes, enquete, csvdict )
 
     print """
 
