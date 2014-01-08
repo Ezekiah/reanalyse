@@ -556,7 +556,7 @@ def enquetes( request ):
 	data = shared_context( request, tags=[ "enquetes" ] )
 	
 	#filter studies, show only activated for public and all for superuser
-	if request.user.is_superuser:
+	if request.user.has_perm('reanalyseapp.can_browse'):
 		data['enquetes'] = Enquete.objects.all()
 	else:
 		data['enquetes'] = Enquete.objects.filter(status="0")

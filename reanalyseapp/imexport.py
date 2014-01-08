@@ -143,15 +143,13 @@ def doFiestaToEnquete(e):
     
     
     e.ese = 'deprecated'
-    e.tags.add(Tag( type=Tag.STUDY, slug=e.name, name=e.name))
+    #e.tags.add(Tag( type=Tag.STUDY, slug=e.name, name=e.name))
     e.save()
     
     logger.info("["+str(e.id)+"] IMPORT PROCESS DONE SUCCESSFULLY !")
     
     
-    #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
-    csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
-    update( newEnquete.texte_set.all(), newEnquete, csvdict )
+    
     
     
     
@@ -510,6 +508,11 @@ def importEnqueteUsingMeta(upPath,folderPath):
         
     newEnquete.status='5'
     newEnquete.save()
+    
+    
+    #CALL UPDATE SCRIPT TO MAKE BEQUALI VIZ WORKING
+    csvdict = bag.csv2.UnicodeDictReader(open(docPath, 'rb'), delimiter=';',encoding='utf-8')
+    update( newEnquete.texte_set.all(), newEnquete, csvdict )
     
     
     return newEnquete

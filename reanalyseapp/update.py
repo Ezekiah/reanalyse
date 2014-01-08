@@ -76,6 +76,7 @@ def update( textes, enquete, csvdict ):
             texte_url = row['file']
             texte_name = row['name']
             locationgeo = re.sub( r'[^0-9\.,-]', '', row['locationgeo'])
+            location = row['location']
             
             
             
@@ -146,6 +147,7 @@ def update( textes, enquete, csvdict ):
         texte.locationgeo = locationgeo
         texte.tags.add( t )
         texte.date = date
+        texte.location = location
         texte.save()
         #try
 

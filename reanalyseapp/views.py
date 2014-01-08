@@ -615,6 +615,7 @@ def eAddAjax(request):
 ################################################################################
 @login_required
 def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
+    
     ''' 
     raw_data: if True, uploaded is an HttpRequest object with the file being
             the raw post data 
@@ -622,7 +623,7 @@ def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
             submission and is a regular Django UploadedFile in request.FILES
     '''
     try:
-        
+            
         # check if dir exist, create it if needed
         #wantedDir = settings.REANALYSEUPLOADPATH+"/"+foldname
         if not os.path.exists(wantedDir):
@@ -662,8 +663,10 @@ def save_upload( uploaded, foldname, filename, raw_data, wantedDir, type ):
                  pass
         
         return True
-    except IOError:
+    except IOError, e:
         # could not open the file most likely
+        return e
+        
         pass
     return False
 #################################################
