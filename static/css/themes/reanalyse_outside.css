@@ -1728,3 +1728,8 @@ body h3.doc_title{
   height:auto;
   
 }
+
+.stick {
+    position:fixed;
+    top:0px;
+}
