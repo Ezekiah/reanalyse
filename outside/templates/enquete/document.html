@@ -18,8 +18,8 @@
 	{% if document.doctype == "CSV"%}
 	
 	<style>
-		#right-sidebar{
-			height:"290px"
+		body#right-sidebar{
+			height:auto;
 			
 		}
 		
@@ -88,9 +88,10 @@
 		height:auto;
 	}*/
 	
-	#tei-settings{
+	body#tei-settings{
 		
 		display:none;
+		height:auto
 		
 	}
 	
@@ -412,8 +413,8 @@
 
 {% block page_left %}
 
-	<section class="alpha wide" >
-		<div style="font-size:11px;color:#0299CC;margin:9px 8px 0px 32px" class="icon {{ document.doctype }}">
+	<section class="alpha wide" style="position:relative">
+		<div class="icon_{{ document.doctype }}">
 			
 			{% if document.doctype|upper != "TEI" %}
 			<i class="icon-file-alt icon-3x"></i>
@@ -428,11 +429,10 @@
 		</div>
 		
 		<a class="return-link" href="{% url outside.views.enquete document.enquete.id %}">
-			
 			<i class="icon-chevron-sign-left"></i> <b>{% trans "return to the research" %}</b> 
 		</a>
 		
-		<h3 style="font-size:23px;margin:0px">{{ document.name }} </h3>
+		<h3 class="doc_title" ><p>{{ document.name }}</p> </h3>
 		
 				
 

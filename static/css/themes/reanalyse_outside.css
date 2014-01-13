@@ -1682,7 +1682,7 @@ div.text_silence:after {
 
 
 .introHtml {
-	height:149px;
+	height:auto;
 	
 }
 
@@ -1706,3 +1706,27 @@ div.text_silence:after {
 
 
 
+.icon_TEI{
+	position:absolute;
+	font-size:11px;
+	color:#0299CC;
+	margin:0px 8px 0px 32px
+	
+}
+
+body h3.doc_title{
+	font-size:23px;
+	margin-left: 66px;
+    margin-right: 36px;
+	line-height: 32px
+	
+}
+
+
+#tei-settings{
+  float:left;
+  height:auto;
+  overflow-y:scroll;
+  
+  
+}
