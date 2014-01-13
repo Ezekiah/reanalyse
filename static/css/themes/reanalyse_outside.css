@@ -78,13 +78,13 @@ hr {
 .leftmenublock h1 {
 	margin-top:0px;
 	margin-bottom:5px;
-	//font-size: 10px;
+	/*font-size: 10px;*/
 	border-bottom:1px solid lightgray;
 }
 .leftmenublock h2 {
 	margin-top:7px;
 	margin-bottom:5px;
-	//font-size: 10px;
+	/*font-size: 10px;*/
 	border-bottom:1px solid lightgray;
 }
 .leftmenublock ul {
@@ -101,8 +101,8 @@ hr {
 	background-color:#F2E6CE;
 }
 #contenttop {
-	//float:left;
-	//display:inline;
+	/*float:left;
+	display:inline;
 	/*width:770px;*/
 }
 #content {
@@ -957,7 +957,7 @@ ol#searchResultList {
 	margin-top: 5px;
 }
 #searchResultList li {
-	//background-color:white;
+	/*background-color:white;*/
 	padding:1px;
 	overflow:hidden;
 	margin:3px;
@@ -1114,7 +1114,6 @@ ul.vizGlobalActions {
 	list-style-type:none;
 }
 vizGlobalActions li {
-	color
 	padding-right:10px;
 }
 .vizOne {
@@ -1417,7 +1416,6 @@ a.text_uncertain{
 	border-bottom:1px dotted black;
 	cursor:help;
 	
-	
 }
 
 .text_silence {
@@ -1659,7 +1657,7 @@ div.text_silence:after {
 }
 
 #tei-settings ul {
-    margin: 5px 0 9px 10px;text
+    margin: 5px 0 9px 10px;
 }
 
 #tei-settings li {
@@ -1706,7 +1704,7 @@ div.text_silence:after {
 
 
 
-.icon_TEI{
+body #left-side .wide .icon{
 	position:absolute;
 	font-size:11px;
 	color:#0299CC;
@@ -1714,7 +1712,7 @@ div.text_silence:after {
 	
 }
 
-body h3.doc_title{
+body section h3.doc_title{
 	font-size:23px;
 	margin-left: 66px;
     margin-right: 36px;
