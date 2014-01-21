@@ -79,7 +79,8 @@
 		
 		
 	.leftmenublock{
-	    float:left;
+	    /*float:left;*/
+	   background : none repeat scroll 0 0 #383838
 	  
 	    
 	}
@@ -91,7 +92,8 @@
 	body#tei-settings{
 		
 		display:none;
-		height:auto
+		height:auto;
+		
 		
 	}
 	
@@ -281,7 +283,7 @@
 	
 
 	
-	<div id="tei-settings">
+	<div id="tei-settings" style="background:none repeat scroll 0 0 #383838;">
 
 		<div  id="counter">
 			<span class="docLabel"><i  style="font-size:22px" class="icon-wrench"></i> {% trans "Settings"%}</span>
@@ -455,24 +457,7 @@ window.onscroll = function (e) {
 		
 				
 
-		<div class="content" >
-		
-		
-		</div>	
-		
-		
-		
-		
-		
-		
-		<div class="clear"></div>
-
-	</section>
-	
-
-	{% if texte.doctype|upper == 'TEI' %}
-
-<div class="introHtml">
+		<div class="introHtml">
 	<!-- ========================================================================= -->
 
 	
@@ -558,6 +543,20 @@ window.onscroll = function (e) {
 	{% endcomment %}
 	
 </div>
+		
+		
+		
+		
+		
+		
+		<div class="clear"></div>
+
+	</section>
+	
+
+	{% if texte.doctype|upper == 'TEI' %}
+
+
 
 	<!-- ========================================================================= -->
 	<!-- before we used to feed the "render_d.html" template with data, now everything is made using ajax (see bottom or render_d.html template) -->
