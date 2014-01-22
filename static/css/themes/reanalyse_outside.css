@@ -1735,6 +1735,8 @@ body section h3.doc_title{
     top:0px;
 }
 
-
+#right-sidebar #navbar ul.nav {
+    background:#383838;
+}
 
 
