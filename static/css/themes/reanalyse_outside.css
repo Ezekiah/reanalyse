@@ -301,9 +301,10 @@ hr {
 /* Login table */
 .loginFormTable {
 	background:white;
-	border:1px lightgray solid;
+	/*border:1px lightgray solid;*/
 	margin:5px;
 }
+/*
 .loginFormTable td,th {
 	padding:10px;
 	border:1px lightgray solid;
@@ -316,7 +317,7 @@ hr {
 .statutTable td, .statutTable th {
 	padding:5px;
 	padding-right:25px;
-	border:1px #909090 solid;
+	/*border:1px #909090 solid;*/
 }
 .statutTable thead {
 	background:lightgray;
@@ -332,12 +333,12 @@ hr {
 /* Overview of different registration status */
 .registerFormTable {
 	background:white;
-	border:1px lightgray solid;
+	/*border:1px lightgray solid;*/
 	margin:5px;
 }
 .registerFormTable td,th {
 	padding:10px;
-	border:1px lightgray solid;
+	/*border:1px lightgray solid;*/
 }
 .errorlist {
 	color:red;
