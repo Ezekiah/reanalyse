@@ -49,6 +49,12 @@
 <a id="enquetes"></a>
 	<section id="list-of-enquetes" class="alpha expand items-container" style="width:auto; padding:36px">
 	
+	<p style="color: #000000;
+    font-size: 86%;
+    margin-top: -29px;
+    line-height:15px;
+    text-align: center;">Les demandes d'accès aux enquêtes sont examinées du lundi au vendredi hors jours fériés. Chaque ouverture d'accès fait l'objet, au préalable, de la signature d'un contrat d'utilisation.</p>
+	
 	{% for s in enquetes %}
 
 		<div class="enquete big item hover {% if perms.reanalyseapp.can_browse and not s.status == '0' %}study-unactivated{%endif%}"
