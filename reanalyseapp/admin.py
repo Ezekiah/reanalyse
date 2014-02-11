@@ -6,6 +6,8 @@ from django.db import models
 import settings
 import codecs
 
+from actions import export_as_csv_action
+
 ###########################################################################
 # LOGGING
 ###########################################################################
@@ -71,7 +73,17 @@ class TagAdmin(admin.ModelAdmin):
 	search_fields = ['name']
 
 
-    
+
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+
+UserAdmin.list_display = ('email', 'first_name', 'last_name', 'is_active', 'date_joined', 'is_staff')
+UserAdmin.actions = [export_as_csv_action("CSV Export")]
+
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+
 
 
 # Tag
