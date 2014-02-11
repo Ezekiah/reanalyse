@@ -17,6 +17,11 @@ p {
 	margin-bottom: 5px;
 	text-align:justify;
 }
+
+.wrap p {
+	text-align: left;
+	
+}
 ul, ol, li {
 	margin: 0px;
 	padding: 0px;
