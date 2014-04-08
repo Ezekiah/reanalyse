@@ -453,7 +453,10 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
             if date == None: date=""
             
             researchers = root.findall('./interview/researchers/researcher')
-        
+            
+            
+            
+            
             #Ajouter les TAGS
             for author in authors:
                 if author == None: author=""
@@ -486,7 +489,27 @@ def importEnqueteSurEnquete(eseXmlPath, enquete_id):
                 except Tag.DoesNotExist, e:
                     tag = Tag.objects.create(type="Rs", name=researcher.text, slug=researcher.text)
             
-                               
+            
+            
+            #create report pin
+            report = root.find('./report/file[@lang="'+lan+'"]')
+            report_location = report.attrib('location')
+            
+            try:
+                report_pin = Pin.objects.get(report_location, slug=slugify( report_location ), language=lan.upper())
+                    
+            except Pin.DoesNotExist:
+                
+                report_pin = Pin.objects.create( title=report_location,
+                           abstract=chapt['abstract'],
+                           language=lan.upper(), 
+                           slug=slugify( report_location ), 
+                           mimetype='',
+                           content=report.text.replace("%url%", django_settings.MEDIA_URL+'reanalyse_ese_files/'+folderName+'/'+os.path.normpath(report_location)),
+                           local='' 
+                           )
+            
+            
             # Fetching chapters
             thechapters = []
             for chapter in root.findall('Chapters/Chapter'):

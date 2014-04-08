@@ -84,6 +84,7 @@ oo.enq.map.init = function ( objects ){
 	oo.enq.map.map = mapbox.map('map');
     oo.enq.map.map.addLayer(mapbox.layer().id('fumoseaffabulazioni.map-80sq0fh2'));
 	oo.enq.map.map.ui.zoomer.add();
+	//oo.enq.map.map.zoom(2, true);
 	
 	// Nesting
 
@@ -197,7 +198,6 @@ oo.enq.map.d3layer = function() {
             .enter().append("circle")
 
             .on("click", function(d, i) {
-            	
             	// It sets the map center and triggers the search
 
             	var item = d3.select(this);
