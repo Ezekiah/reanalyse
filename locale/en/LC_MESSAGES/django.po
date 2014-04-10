@@ -590,7 +590,7 @@ msgstr "Intervenants"
 #: outside/templates/enquete/metadata.html:134
 #, fuzzy
 msgid "universe"
-msgstr "Champs l'application"
+msgstr "univers"
 
 #: outside/templates/enquete/metadata.html:19
 #: outside/templates/enquete/metadata.html:156

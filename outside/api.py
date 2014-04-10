@@ -265,7 +265,7 @@ def enquete_data( request, enquete_id ):
 		'location': t.locationgeo,
 		'coordinates' : {"type": "Feature","geometry": {"type": "Point","coordinates": t.locationgeo.split(",")[::-1] if t.locationgeo else [] },"properties": {"name": t.location}},
 		'date':t.date.isoformat() if t.date else None
-	} for t in textes.all() ])	
+	} for t in textes.order_by('name') ])	
 	return response.json()
 	data = {}
 	return render_to_response('outside/enquete_data.json', RequestContext(request, data ) )

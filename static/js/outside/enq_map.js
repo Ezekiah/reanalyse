@@ -85,6 +85,8 @@ oo.enq.map.init = function ( objects ){
     oo.enq.map.map.addLayer(mapbox.layer().id('fumoseaffabulazioni.map-80sq0fh2'));
 	oo.enq.map.map.ui.zoomer.add();
 	
+	
+	
 	// Nesting
 
 	var nest = { type : "FeatureCollection", features : [] };
@@ -123,7 +125,7 @@ oo.enq.map.init = function ( objects ){
 
     layer = oo.enq.map.d3layer().data(oo.enq.map.data);
 	oo.enq.map.map.addLayer(layer);
-	oo.enq.map.map.extent(layer.extent());
+	oo.enq.map.map.extent(layer.extent()).zoom(3, true);
 	
 	// Behaviors
 
@@ -137,7 +139,7 @@ oo.enq.map.init = function ( objects ){
     	}, 500 );
 	});
 	
-	//$('.zoomer.zoomin').trigger('click')
+	//$('.zoomer.zoomin').trigger('click')*/
 
 }
 
@@ -197,7 +199,6 @@ oo.enq.map.d3layer = function() {
             .enter().append("circle")
 
             .on("click", function(d, i) {
-            	
             	// It sets the map center and triggers the search
 
             	var item = d3.select(this);

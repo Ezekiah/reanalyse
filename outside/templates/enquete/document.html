@@ -383,7 +383,7 @@
 						
 						<li>
 							
-							<input class="paraCheck" id="paraCheck_{{p}}" type="checkbox" checked="checked"/>
+							<input class="paraCheck" id="paraCheck_{{p}}" type="checkbox" checked="checked" data-class="{{c}}"/>
 							<label for="paraCheck_{{p}}"><span class="{{c}} text_legend"></span> {{o}}</label>
 							 
 						</li>
@@ -449,7 +449,19 @@ window.onscroll = function (e) {
 			
 		</div>
 		
-		<a class="return-link" href="{% url outside.views.enquete document.enquete.id %}">
+			
+		<script>
+		function openOrFocus(target){
+			win = window.open('', target,'', true)
+			
+		    win.focus()
+				
+			
+			
+		}
+		</script>
+			
+		<a target="study_{{enquete.id}}" class="return-link" onclick="openOrFocus('study_{{enquete.id}}')" href="{% url outside.views.enquete document.enquete.id %}">
 			<i class="icon-chevron-sign-left"></i> <b>{% trans "return to the research" %}</b> 
 		</a>
 		
@@ -710,6 +722,29 @@ window.onscroll = function (e) {
 						//dime.updateView();
 						oo.sidebar.init();
 						
+						var myRegex = /[0-9]+/
+						
+						
+						$('#speakersShowHide input:checkbox:not(:checked)').each(function() {
+							
+							id = $(this).attr('id').match(myRegex)[0]
+							
+							$('.speaker_'+id).hide()
+
+						});
+						
+						
+						$('#paraverbalShowHide input:checkbox:not(:checked)').each(function() {
+							
+							css_class = '.'+$(this).attr('data-class')
+							
+							$(css_class).hide()
+
+						});
+						
+						
+						
+	
 					}
 				});
 			}
@@ -880,7 +915,7 @@ window.onscroll = function (e) {
 			$("#tei-settings input").attr("disabled", true);
 			$('.ajax-loader-div').show ('slow', function(){
 
-				$(this).css({'cursor':'wait'})
+				//$(this).css({'cursor':'wait'})
 				console.log("toggle all");
 				var chk = $('#paraCheckAll').attr("checked");
 				if (chk!='checked') chk=null;
@@ -897,7 +932,7 @@ window.onscroll = function (e) {
 					{% endfor %}
 				{% endfor %}
 				
-				$(this).css({'cursor':'default'})
+				//$(this).css({'cursor':'default'})
 				
 				$('.ajax-loader-div').hide();
 				
@@ -920,6 +955,8 @@ window.onscroll = function (e) {
 				var css_class = '.{{c}}'.replace(' ', '.');
 				$(css_class+':not(.text_legend)').toggle();
 				$('.ajax-loader').remove().delay(800);
+				
+				console.log(css_class)
 				
 				$('.ajax-loader-div').hide();
 				$("#tei-settings input").removeAttr("disabled");
