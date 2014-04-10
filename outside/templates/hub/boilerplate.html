@@ -36,17 +36,20 @@
 		<script src="{{ STATIC_URL }}js/outside/spin.js" type="text/javascript"></script>
 		
 		<script src="{{ STATIC_URL }}js/jquery.toastmessage.js" type="text/javascript"></script>
-
-		<script src="{{ STATIC_URL }}js/wysihtml5.advanced.js" type="text/javascript"></script>
-		<script src="{{ STATIC_URL }}js/wysihtml5-0.3.0.min.js" type="text/javascript"></script>
 		
-		<script src="{{ STATIC_URL }}js/jquery.iframe-transport.js" type="text/javascript"></script>
-		<script src="{{ STATIC_URL }}js/jquery.ui.widget.js" type="text/javascript"></script>
 		
-		<script src="{{ STATIC_URL }}js/jquery.fileupload.js" type="text/javascript"></script>
+		{% if edit_mode %}
+		
+			<script src="{{ STATIC_URL }}js/wysihtml5.advanced.js" type="text/javascript"></script>
+			<script src="{{ STATIC_URL }}js/wysihtml5-0.3.0.min.js" type="text/javascript"></script>
+			
+			<script src="{{ STATIC_URL }}js/jquery.iframe-transport.js" type="text/javascript"></script>
+			<script src="{{ STATIC_URL }}js/jquery.ui.widget.js" type="text/javascript"></script>
+			
+			<script src="{{ STATIC_URL }}js/jquery.fileupload.js" type="text/javascript"></script>
+			
+		{% endif %}
 		<script src="{{ STATIC_URL }}js/jquery.scrolltofixed.min.js" type="text/javascript"></script>
-		
-
 		<script>
 		// Edit to suit your needs.
 		var ADAPT_CONFIG = {

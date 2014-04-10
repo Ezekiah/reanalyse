@@ -47,8 +47,11 @@ from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 import django_tables2 as tables
 from django.utils.safestring import mark_safe
 
-from collections import OrderedDict 
-
+try:
+    from collections import OrderedDict
+except ImportError:
+    # python 2.6 or earlier, use backport
+    from ordereddict import OrderedDict
 ###########################################################################
 # LOGGING
 ###########################################################################
