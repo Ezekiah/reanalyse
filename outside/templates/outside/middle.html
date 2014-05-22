@@ -137,49 +137,56 @@
 		</div>
 		<div class="push"></div>
 	</div>
-	<!-- the footer -->
+<!-- the footer -->
 	<footer>
 		{% block footer %}
-		<div id="footer-inner" class="container_12">
-			<ul>
-				{% comment %}<li style="float:right" {% ifequal language "EN" %} class="selected"{% endifequal %}>
-					<a href="{{  request.path }}?lang=en">{% trans "english" %}</a>
-				</li>
-				<li style="float:right" {% ifequal language "FR" %} class="selected"{% endifequal %}>
-					<a href="{{  request.path }}?lang=fr">{% trans "french" %}</a>
-				</li>
-				{% endcomment %}
+		<div class="container_12">
+			
+			<style>
+				#footer-inner img{
+					height: 53px;
+				}
+			</style>
+			
+			<div id="footer-inner">
+				
+				
 
-				{% if not user.is_authenticated %}
-				<li>
-					<a href="#login" data-toggle="" data-target="#login-modal">{% trans "login" %}</a>
-				</li>
-	{% else %}
-				{% comment %}<li>
-					<a href="{% url outside_logout %}"rel="tooltip" title="{% trans "logout" %} {{ user.username }}" data-tooltip-placement="top">{% trans "logout" %}</a>
-				</li>
-				{% endcomment %}
-		{% if has_edit_mode %}
-			{% if edit_mode %}
-				<li style="float:right" class="selected">
-					<a  href="{{  request.path }}?disable-edit-mode">{% trans "disable edit"%}
-						<!-- div  style="position:relative; top:0px" title="{% trans "disable edit mode"%}" rel="tooltip" data-tooltip-placement="bottom" class="edit-mode on"></div>
-						&nbsp; -->
-					</a>
-				</li>
-			{% else %}
-				<li style="float:right">
-					<a href="{{  request.path }}?enable-edit-mode" title="{% trans "enable edit mode"%}" rel="tooltip" data-tooltip-placement="top">{% trans "edit"%}
-						<!-- div class="edit-mode off" title="{% trans "enable edit mode"%}" rel="tooltip" data-tooltip-placement="bottom"></div -->
-					</a>
-				</li>
-			{% endif %}
-		{% endif %}
-	{% endif %}
+				
+				
+				<a href="http://sciences-po.fr" class="footer-link"><img src="{{ STATIC_URL }}img/scpo-blanc.png"/></a>
+				<a href="http://www.cnrs.fr/" class="footer-link"><img src="{{ STATIC_URL }}img/cnrs.png"/></a>
+				
+				
+				<div style="float:right">
+					<a href="{% url outside_contacts %}" class="footer-link">nous contacter</a>
+					<a href="{% url outside_legal %}" class="footer-link">mentions légales</a>
+					<a href="http://investissement-avenir.gouvernement.fr/" class="footer-link"><img src="{{ STATIC_URL }}img/IA.png"/></a>
+				</div>
+				
 	
-			</ul>
+
+
+				
+				{% comment %}
+				<ul>
+
+					<li style="float:right" {% ifequal language "EN" %} class="selected"{% endifequal %}>
+						<a href="{{  request.path }}?lang=en">{% trans "english" %}</a>
+					</li>
+					<li style="float:right" {% ifequal language "FR" %} class="selected"{% endifequal %}>
+						<a href="{{  request.path }}?lang=fr">{% trans "french" %}</a>
+					</li>
+					
+
+					<li></li>
+		
+				</ul>
+				{% endcomment %}
+			</div>
 			<div class="clear"></div>
 		</div>
+		
 		
 
 		{% endblock %}	
