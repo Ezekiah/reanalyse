@@ -114,7 +114,7 @@ def doFiestaToEnquete(e):
     
     ####### UPDATE SOLR INDEX
     logger.info("["+str(e.id)+"] solr index updating ...")
-    #update_index.Command().handle(verbosity=0)
+    update_index.Command().handle(verbosity=0)
     logger.info("["+str(e.id)+"] solr index updated")
         
     ####### UPDATE ALL TFIDF
