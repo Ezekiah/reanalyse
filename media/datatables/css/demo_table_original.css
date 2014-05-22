@@ -187,6 +187,8 @@ table.display td.center {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables row classes
  */
+
+/*
 table.display tr.odd.gradeA {
 	background-color: #ddffdd;
 }
@@ -228,7 +230,7 @@ tr.even {
 	background-color: white;
 }
 
-
+*/
 
 
 
