@@ -206,7 +206,7 @@ def enquete_download( request, enquete_id ):
 	
 
 	
-	zippath = settings.REANALYSESAMPLE_STUDIES_FILES+'/download/enquete-'+str(enquete.id)+'.zip'
+	zippath = settings.REANALYSE_ENQUETE_DOWNLOAD+'enquete-'+str(enquete.id)+'.zip'
 	
 	"""zf = zipfile.ZipFile( zippath, mode='w' )
 	
