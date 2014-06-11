@@ -1,4 +1,5 @@
 
+
 // 
 // Documents
 // 
@@ -135,8 +136,7 @@ oo.enq.docs.init = function ( objects ){
 		})
 
 		.on('click', function(d, i) {
-			window.open( oo.api.urlfactory( oo.urls.get_document, d3.select(this).attr('data-id') ), '_blank');
-			
+			win = window.open( oo.api.urlfactory( oo.urls.get_document, d3.select(this).attr('data-id') ),'document'+d3.select(this).attr('data-id'))
 			/*var string = d.title + ' <small>('+d.type+')</small> <br/>';
        		$( "#tabs" ).tabs( "add", "#tabs-2", string);
 
