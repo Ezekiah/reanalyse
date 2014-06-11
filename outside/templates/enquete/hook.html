@@ -17,8 +17,8 @@
 			
 			<div class="back floating with-icon {% if "visualizations" in tags %}selected{%endif%}">
 
-				<a href="{% url outside_enquete enquete.id %}" target="study_{{enquete.id}}"> 
-					<div class="icon" style="margin-top:0px"><span class="icon-eye-open " style=""></span></div> {% trans "Research content" %}
+				<a target="enquete_{{enquete.id}}"  href="{% url outside_enquete enquete.id %}"> 
+					<div class="icon"  style="margin-top:0px"><span class="icon-eye-open " style=""></span></div> {% trans "Research content" %}
 				</a>
 			</div>
 			

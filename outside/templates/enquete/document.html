@@ -460,11 +460,11 @@ window.onscroll = function (e) {
 			
 		}
 		</script>
-			
-		<a target="study_{{enquete.id}}" class="return-link" onclick="openOrFocus('study_{{enquete.id}}')" href="{% url outside.views.enquete document.enquete.id %}">
+		
+		<a rel="no-refresh" target="enquete_{{enquete.id}}" class="return-link"  href="{% url outside.views.enquete document.enquete.id %}">
 			<i class="icon-chevron-sign-left"></i> <b>{% trans "return to the research" %}</b> 
 		</a>
-		
+	
 		<h3 class="doc_title" ><p>{{ document.name }}</p> </h3>
 		
 				
@@ -1166,7 +1166,7 @@ window.onscroll = function (e) {
 			    	"oTableTools": {
 						"sSwfPath": "{{MEDIA_URL}}/datatables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
 					},
-					 "sDom": "Rlfrtip",
+					 "sDom": "<'top'i>Rlfrtip",
 					 "sPaginationType": "two_button",
 					 
 					 "oLanguage": {
@@ -1178,7 +1178,7 @@ window.onscroll = function (e) {
       oo.sidebar.init();
     },
     
-    "sDom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>'
+    "sDom": '<"top"iflp<"clear">>rt'
             		
             		
 			    	
@@ -1204,4 +1204,29 @@ window.onscroll = function (e) {
 		{% endifequal %}
 	</section>
 	
-{% endblock %}	
+{% endblock %}
+
+
+<script>
+	function myOpenWindow(winURL, winName, winFeatures, winObj)
+	{
+	  var theWin; // this will hold our opened window
+	
+	  // first check to see if the window already exists
+	  if (winObj != null)
+	  {
+	    // the window has already been created, but did the user close it?
+	    // if so, then reopen it. Otherwise make it the active window.
+	    if (!winObj.closed) {
+	      winObj.focus();
+	      return winObj;
+	    }
+	    // otherwise fall through to the code below to re-open the window
+	  }
+	
+	  // if we get here, then the window hasn't been created yet, or it
+	  // was closed by the user.
+	  theWin = window.open(winURL, winName, winFeatures);
+	  return theWin;
+	} 
+</script>

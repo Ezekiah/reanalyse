@@ -973,7 +973,7 @@ msgstr "Intervenants"
 #: outside/templates/enquete/metadata.html:18
 #: outside/templates/enquete/metadata.html:134
 msgid "universe"
-msgstr "Champs l'application"
+msgstr "Univers"
 
 #: outside/templates/enquete/metadata.html:19
 #: outside/templates/enquete/metadata.html:156
