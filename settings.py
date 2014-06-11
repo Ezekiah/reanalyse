@@ -8,6 +8,9 @@ from settingsprivate import *
 import os, sys
 
 
+
+SESSION_COOKIE_NAME = ROOT_DIRECTORY_NAME
+
 TEMPLATE_DEBUG = DEBUG
 
 #REANALYSEURL
@@ -41,7 +44,7 @@ SOLR_JARNAME = "startreanalysesolr.jar"
 # SOLR_PORT = was 8983 by default, defined in solr/et/jetty.xml
 # from now on, we launch solr (in views.py) with -Djetty.port=SOLR_PORT to allow custom PORT
 # (avoids conflicts between multiple reanalyse instances)
-SOLR_PORT = 8983
+SOLR_PORT = 8080
 
 ######## HAYSTACK
 # Required and specific to where you place the file.
@@ -52,7 +55,7 @@ HAYSTACK_SITECONF = ROOT_DIRECTORY_NAME + '.search_sites'
 HAYSTACK_INCLUDE_SPELLING = True
 # For Solr:
 HAYSTACK_SEARCH_ENGINE = 'solr'
-HAYSTACK_SOLR_URL = 'http://localhost:'+str(SOLR_PORT)+'/solr/'
+HAYSTACK_SOLR_URL = 'http://localhost:'+str(SOLR_PORT)+'/solr/reanalyse2'
 HAYSTACK_SOLR_TIMEOUT = 60 * 5
 
 # For admin page:
