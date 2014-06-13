@@ -48,6 +48,14 @@
 			
 			{{ subscriber_form.action }}
 			
+			
+			<label for="id_subscriber_accepted_terms">{% trans "legal notices"|capfirst %}
+				<div class="specification">
+					{% trans "legal notice description"|capfirst  %}
+				</div>
+				<br/>
+				<div class="specification"><b>{% trans "I have read and accepted" %}</b> {{ subscriber_form.accepted_terms }}</div>
+			</label>
 
 			
 			<input type="button" id="add-subscriber" value="{% trans "send" %}"/>
