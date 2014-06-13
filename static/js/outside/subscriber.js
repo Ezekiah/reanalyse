@@ -58,7 +58,10 @@ oo.api.subscriber.add = function( params ){
 	}));
 };
 
-
+$('.refresh-captcha').click( function() {
+	captcha_refresh()
+}
+)
 
 
 oo.subscriber.init = function(){
