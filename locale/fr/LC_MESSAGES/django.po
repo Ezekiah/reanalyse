@@ -973,7 +973,7 @@ msgstr "Intervenants"
 #: outside/templates/enquete/metadata.html:18
 #: outside/templates/enquete/metadata.html:134
 msgid "universe"
-msgstr "Champs l'application"
+msgstr "Univers"
 
 #: outside/templates/enquete/metadata.html:19
 #: outside/templates/enquete/metadata.html:156
@@ -1148,7 +1148,7 @@ msgstr "Message"
 #: outside/templates/hub/contacts.html:43
 #: outside/templates/hub/contacts.html:44
 msgid "Recaptcha"
-msgstr ""
+msgstr "Captcha"
 
 #: outside/templates/hub/contacts.html:56
 #: outside/templates/hub/signup.html:101
@@ -1224,18 +1224,13 @@ msgstr ""
 msgid "You can modify your information"
 msgstr "Voici vos coordonnées, vous pouvez les modifier."
 
-#: outside/templates/hub/edit_profile.html:47
+#: outside/templates/hub/contacts.html:40
 msgid "recaptcha"
-msgstr ""
+msgstr "Captcha"
 
-#: outside/templates/hub/edit_profile.html:48
-#, fuzzy
+#: outside/templates/hub/contacts.html:41
 msgid "recaptcha description"
-msgstr ""
-"Les informations recueillies font l'objet d'un traitement informatique "
-"destiné à la gestion du portail BeQuali. Conformément à la loi 'Informatique "
-"et Libertés' du 6 janvier 1978 modifiée en 2004, vous bénéficiez d'un droit "
-"d'accès et de rectification aux informations qui vous concernent. "
+msgstr "Veuillez recopier le texte de l'image ci-dessous"
 
 #: outside/templates/hub/edit_profile.html:58
 msgid "Modifier"
