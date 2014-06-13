@@ -25,10 +25,10 @@ oo.magic.subscriber.add = function(){
 */
 oo.api.subscriber = {};
 oo.api.subscriber.add = function( params ){
-	/*if( params.accepted_terms == false){
+	if( params.accepted_terms == false){
 		oo.toast( oo.i18n.translate("please check accepted terms"), oo.i18n.translate("form errors"));
 		return;
-	}*/
+	}
 	
 	
 	var $this = $(this);
